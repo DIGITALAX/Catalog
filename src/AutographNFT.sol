@@ -2,35 +2,33 @@
 pragma solidity ^0.8.26;
 
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
-import "./CatalogAccessControl.sol";
+import "./AutographAccessControl.sol";
 
-contract CatalogNFT is ERC721Enumerable {
-    CatalogAccessControl public catalogAccessControl;
+contract AutographNFT is ERC721Enumerable {
+    AutographAccessControl public autographAccessControl;
     uint256 private _tokenIds;
 
     error AddressNotVerified();
 
     modifier OnlyAdmin() {
-        if (!catalogAccessControl.isAdmin(msg.sender)) {
+        if (!autographAccessControl.isAdmin(msg.sender)) {
             revert AddressNotVerified();
         }
         _;
     }
 
     modifier OnlyOpenAction() {
-        if (!catalogAccessControl.isOpenAction(msg.sender)) {
+        if (!autographAccessControl.isOpenAction(msg.sender)) {
             revert AddressNotVerified();
         }
         _;
     }
 
-
-
     constructor(
-        address _catalogAccessControlAddress
-    ) ERC721("CatalogNFT", "CNFT") {
-        catalogAccessControl = CatalogAccessControl(
-            _catalogAccessControlAddress
+        address _autographAccessControlAddress
+    ) ERC721("AutographNFT", "CNFT") {
+        autographAccessControl = AutographAccessControl(
+            _autographAccessControlAddress
         );
     }
 
@@ -44,7 +42,7 @@ contract CatalogNFT is ERC721Enumerable {
         uint256 _chosenIndex
     ) public OnlyOpenAction {
         uint256[] memory tokenIds = new uint256[](_amount);
-        uint256 _supply = catalogData.getCatalogSupply();
+        uint256 _supply = autographData.getAutographSupply();
         for (uint256 i = 0; i < _amount; i++) {
             PrintLibrary.Token memory newToken = PrintLibrary.Token({
                 uri: _uri,
