@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.23;
 
-contract CatalogAccessControl {
+contract AutographAccessControl {
     string public symbol;
     string public name;
 
@@ -31,7 +31,7 @@ contract CatalogAccessControl {
     constructor() {
         _admins[msg.sender] = true;
         symbol = "CAC";
-        name = "CatalogAccessControl";
+        name = "AutographAccessControl";
     }
 
     function addAdmin(address _admin) external onlyAdmin {
