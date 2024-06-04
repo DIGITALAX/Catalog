@@ -25,6 +25,7 @@ contract AutographOpenAction is
     string private _metadata;
 
     error CurrencyNotWhitelisted();
+    error InvalidAddress();
 
     IModuleRegistry public immutable MODULE_GLOBALS;
 
@@ -65,25 +66,31 @@ contract AutographOpenAction is
         ) {
             autographData.createAutograph(
                 AutographLibrary.AutographInit({
-                    prices: _autographCreator.prices[0],
-                    acceptedTokens: _autographCreator.acceptedTokens[0],
-                    uri: _autographCreator.uri[0],
-                    pubId: _pubId[0],
-                    profileId: _profileId[0],
-                    amount: _autographCreator.amount[0]
+                    prices: _autographCreator.prices,
+                    acceptedTokens: _autographCreator.acceptedTokens,
+                    uri: _autographCreator.uri,
+                    pubId: _pubId,
+                    profileId: _profileId,
+                    amount: _autographCreator.amount
                 })
             );
         } else if (autographAccessControl.isDesigner(_executor)) {
-            autographData.createCollection(
-                AutographLibrary.CollectionInit({
-                    prices: _autographCreator.prices,
-                    acceptedTokens: _autographCreator.acceptedTokens,
-                    uris: _autographCreator.uri,
-                    pubIds: _pubId,
-                    profileIds: _profileId,
-                    amounts: _autographCreator.amount,
-                    collectionTypes: _autographCreator.collectionTypes
-                })
+            if (
+                autographData.getCollectionDesignerByGallery(
+                    _autographCreator.collectionId,
+                    _autographCreator.galleryId
+                ) !=
+                msg.sender &&
+                !autographAccessControl.isNPC(msg.sender)
+            ) {
+                revert InvalidAddress();
+            }
+
+            autographData.connectPublication(
+                _pubId,
+                _profileId,
+                _autographCreator.collectionId,
+                _autographCreator.galleryId
             );
         }
 

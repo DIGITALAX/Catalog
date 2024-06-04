@@ -11,7 +11,7 @@ contract AutographMarket {
 
     error InvalidAddress();
 
-    modifier onlyOpenAction() {
+    modifier OnlyOpenAction() {
         if (!autographAccessControl.isOpenAction(msg.sender)) {
             revert InvalidAddress();
         }
@@ -30,7 +30,12 @@ contract AutographMarket {
         );
     }
 
-    function buyTokens() external onlyOpenAction {}
+    function buyTokens() external OnlyOpenAction {
 
-    function createOrder() internal {}
+        // se mintean los tokens
+    }
+
+    function createOrder() internal {
+
+    }
 }
