@@ -9,6 +9,7 @@ contract AutographAccessControl {
     mapping(address => bool) private _admins;
     mapping(address => bool) private _designers;
     mapping(address => bool) private _openActions;
+    mapping(address => bool) private _npcs;
 
     event AdminAdded(address indexed admin);
     event AdminRemoved(address indexed admin);
@@ -16,6 +17,8 @@ contract AutographAccessControl {
     event DesignerRemoved(address indexed designer);
     event OpenActionAdded(address indexed openAction);
     event OpenActionRemoved(address indexed openAction);
+    event NPCAdded(address indexed npc);
+    event NPCRemoved(address indexed npc);
 
     error AddressInvalid();
     error Existing();
@@ -69,6 +72,22 @@ contract AutographAccessControl {
         emit DesignerRemoved(_designer);
     }
 
+    function addNPC(address _npc) external onlyAdmin {
+        if (_npcs[_npc]) {
+            revert Existing();
+        }
+        _npcs[_npc] = true;
+        emit NPCAdded(_npc);
+    }
+
+    function removeNPC(address _npc) external onlyAdmin {
+        if (!_npcs[_npc]) {
+            revert AddressInvalid();
+        }
+        _npcs[_npc] = false;
+        emit NPCRemoved(_npc);
+    }
+
     function addOpenAction(address _openAction) external onlyAdmin {
         if (_openActions[_openAction]) {
             revert Existing();
@@ -95,5 +114,9 @@ contract AutographAccessControl {
 
     function isOpenAction(address _address) public view returns (bool) {
         return _openActions[_address];
+    }
+
+    function isNPC(address _address) public view returns (bool) {
+        return _npcs[_address];
     }
 }

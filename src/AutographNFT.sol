@@ -37,9 +37,7 @@ contract AutographNFT is ERC721Enumerable {
         string memory _uri,
         address _purchaserAddress,
         address _chosenCurrency,
-        uint256 _amount,
-        uint256 _collectionId,
-        uint256 _chosenIndex
+        uint256 _amount
     ) public OnlyOpenAction {
         uint256[] memory tokenIds = new uint256[](_amount);
         uint256 _supply = autographData.getAutographSupply();
