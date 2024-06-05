@@ -91,17 +91,20 @@ contract AutographCollection is ERC721Enumerable {
     function mintCollection(
         address _purchaserAddress,
         uint256 _collectionId,
-        uint16 _galleryId
+        uint16 _galleryId,
+        uint8 _amount
     ) external OnlyMarket {
-        _supply++;
-        _safeMint(_purchaserAddress, _supply);
+        for (uint8 i = 0; i < _amount; i++) {
+            _supply++;
+            _safeMint(_purchaserAddress, _supply);
 
-        _collectionMap[_supply] = AutographLibrary.CollectionMap({
-            collectionId: _collectionId,
-            galleryId: _galleryId
-        });
+            _collectionMap[_supply] = AutographLibrary.CollectionMap({
+                collectionId: _collectionId,
+                galleryId: _galleryId
+            });
 
-        autographData.setMintedTokens(_supply, _collectionId, _galleryId);
+            autographData.setMintedTokens(_supply, _collectionId, _galleryId);
+        }
     }
 
     function tokenURI(

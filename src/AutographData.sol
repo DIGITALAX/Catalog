@@ -9,15 +9,18 @@ import "./AutographCollection.sol";
 contract AutographData {
     AutographAccessControl public autographAccessControl;
     AutographCollection public autographCollection;
+    AutographLibrary.Autograph private _autograph;
     string public symbol;
     string public name;
-    uint256 private _autographCounter;
-    uint16 private _galleryCounter;
     uint256 private _collectionCounter;
+    uint256 private _vig;
+    uint256 private _hoodieBase;
+    uint256 private _shirtBase;
+    uint16 private _galleryCounter;
 
     error InvalidAddress();
 
-    event AutographCreated(uint256 autographId, string uri, uint256 amount);
+    event AutographCreated(string uri, uint256 amount);
     event GalleryCreated(
         uint256[] collectionIds,
         address designer,
@@ -49,6 +52,13 @@ contract AutographData {
         _;
     }
 
+    modifier OnlyAdmin() {
+        if (!autographAccessControl.isAdmin(msg.sender)) {
+            revert InvalidAddress();
+        }
+        _;
+    }
+
     modifier OnlyCollection() {
         if (msg.sender != address(autographCollection)) {
             revert InvalidAddress();
@@ -66,7 +76,6 @@ contract AutographData {
         _;
     }
 
-    mapping(uint256 => AutographLibrary.Autograph) private _autographs;
     mapping(uint16 => mapping(uint256 => AutographLibrary.Collection))
         private _collections;
     mapping(uint16 => uint256[]) private _galleryCollections;
@@ -76,6 +85,7 @@ contract AutographData {
         private _publicationCollection;
     mapping(uint256 => mapping(uint256 => uint16)) private _publicationGallery;
     mapping(uint16 => uint256) private _collectionCount;
+    mapping(uint256 => uint16) private _collectionGallery;
 
     constructor(
         string memory _symbol,
@@ -85,7 +95,6 @@ contract AutographData {
     ) {
         symbol = _symbol;
         name = _name;
-        _autographCounter = 0;
         _collectionCounter = 0;
         autographAccessControl = AutographAccessControl(
             _autographAccessControl
@@ -94,24 +103,18 @@ contract AutographData {
     }
 
     function createAutograph(
-        AutographLibrary.AutographInit memory _autograph
+        AutographLibrary.AutographInit memory _auto
     ) external OnlyOpenAction {
-        _autographCounter++;
+        _autograph.id = 1;
+        _autograph.uri = _auto.uri;
+        _autograph.amount = _auto.amount;
+        _autograph.price = _auto.price;
+        _autograph.acceptedTokens = _auto.acceptedTokens;
+        _autograph.designer = _auto.designer;
+        _autograph.pubId = _auto.pubId;
+        _autograph.profileId = _auto.profileId;
 
-        _autographs[_autographCounter].id = _autographCounter;
-        _autographs[_autographCounter].uri = _autograph.uri;
-        _autographs[_autographCounter].amount = _autograph.amount;
-        _autographs[_autographCounter].prices = _autograph.prices;
-        _autographs[_autographCounter].acceptedTokens = _autograph
-            .acceptedTokens;
-        _autographs[_autographCounter].pubId = _autograph.pubId;
-        _autographs[_autographCounter].profileId = _autograph.profileId;
-
-        emit AutographCreated(
-            _autographCounter,
-            _autograph.uri,
-            _autograph.amount
-        );
+        emit AutographCreated(_auto.uri, _auto.amount);
     }
 
     function createGallery(
@@ -132,7 +135,7 @@ contract AutographData {
             ];
             _collections[_galleryCounter][_collectionCounter].amount = _colls
                 .amounts[i];
-            _collections[_galleryCounter][_collectionCounter].prices = _colls
+            _collections[_galleryCounter][_collectionCounter].price = _colls
                 .prices[i];
             _collections[_galleryCounter][_collectionCounter]
                 .acceptedTokens = _colls.acceptedTokens[i];
@@ -142,6 +145,7 @@ contract AutographData {
                 .designer = _designer;
 
             _galleryCollections[_galleryCounter].push(_collectionCounter);
+            _collectionGallery[_collectionCounter] = _galleryCounter;
         }
 
         _collectionCount[_galleryCounter] = _colls.amounts.length;
@@ -166,7 +170,7 @@ contract AutographData {
             _collections[_galleryId][_collectionCounter].uri = _colls.uris[i];
             _collections[_galleryId][_collectionCounter].amount = _colls
                 .amounts[i];
-            _collections[_galleryId][_collectionCounter].prices = _colls.prices[
+            _collections[_galleryId][_collectionCounter].price = _colls.prices[
                 i
             ];
             _collections[_galleryId][_collectionCounter].acceptedTokens = _colls
@@ -268,6 +272,7 @@ contract AutographData {
             ];
         }
 
+        delete _collectionGallery[_collectionCounter];
         delete _collections[_galleryId][_collectionId];
 
         _collectionCount[_galleryId] = _collectionCount[_galleryId] - 1;
@@ -289,40 +294,48 @@ contract AutographData {
         emit CollectionTokenMinted(_tokenId, _collectionId, _galleryId);
     }
 
-    function getAutographURIById(
-        uint256 _autographId
-    ) public view returns (string memory) {
-        return _autographs[_autographId].uri;
+    function setVig(uint256 _newVig) public OnlyAdmin {
+        _vig = _newVig;
     }
 
-    function getAutographAmountById(
-        uint256 _autographId
-    ) public view returns (uint256) {
-        return _autographs[_autographId].amount;
+    function setHoodieBase(uint256 _newBase) public OnlyAdmin {
+        _hoodieBase = _newBase;
     }
 
-    function getAutographPricesById(
-        uint256 _autographId
-    ) public view returns (uint256[] memory) {
-        return _autographs[_autographId].prices;
+    function setShirtBase(uint256 _newBase) public OnlyAdmin {
+        _shirtBase = _newBase;
     }
 
-    function getAutographAcceptedTokensById(
-        uint256 _autographId
-    ) public view returns (address[] memory) {
-        return _autographs[_autographId].acceptedTokens;
+    function getAutographURI() public view returns (string memory) {
+        return _autograph.uri;
     }
 
-    function getAutographProfileIdById(
-        uint256 _autographId
-    ) public view returns (uint256) {
-        return _autographs[_autographId].profileId;
+    function getAutographAmount() public view returns (uint256) {
+        return _autograph.amount;
     }
 
-    function getAutographPubIdById(
-        uint256 _autographId
-    ) public view returns (uint256) {
-        return _autographs[_autographId].pubId;
+    function getAutographPrice() public view returns (uint256) {
+        return _autograph.price;
+    }
+
+    function getAutographAcceptedTokens()
+        public
+        view
+        returns (address[] memory)
+    {
+        return _autograph.acceptedTokens;
+    }
+
+    function getAutographProfileId() public view returns (uint256) {
+        return _autograph.profileId;
+    }
+
+    function getAutographPubId() public view returns (uint256) {
+        return _autograph.pubId;
+    }
+
+    function getAutographDesigner() public view returns (address) {
+        return _autograph.designer;
     }
 
     function getDesignerGalleries(
@@ -362,11 +375,11 @@ contract AutographData {
         return _collections[_galleryId][_collectionId].amount;
     }
 
-    function getCollectionPricesByGalleryId(
+    function getCollectionPriceByGalleryId(
         uint256 _collectionId,
         uint16 _galleryId
-    ) public view returns (uint256[] memory) {
-        return _collections[_galleryId][_collectionId].prices;
+    ) public view returns (uint256) {
+        return _collections[_galleryId][_collectionId].price;
     }
 
     function getCollectionAcceptedTokensByGalleryId(
@@ -430,8 +443,10 @@ contract AutographData {
         return _galleryCollections[_galleryId];
     }
 
-    function getAutographCounter() public view returns (uint256) {
-        return _autographCounter;
+    function getCollectionGallery(
+        uint256 _collectionId
+    ) public view returns (uint16) {
+        return _collectionGallery[_collectionId];
     }
 
     function getCollectionCounter() public view returns (uint256) {
@@ -440,5 +455,17 @@ contract AutographData {
 
     function getGalleryCounter() public view returns (uint256) {
         return _galleryCounter;
+    }
+
+    function getVig() public view returns (uint256) {
+        return _vig;
+    }
+
+    function getHoodieBase() public view returns (uint256) {
+        return _hoodieBase;
+    }
+
+    function getShirtBase() public view returns (uint256) {
+        return _shirtBase;
     }
 }
