@@ -10,6 +10,7 @@ contract AutographData {
     AutographAccessControl public autographAccessControl;
     AutographCollection public autographCollection;
     AutographLibrary.Autograph private _autograph;
+    uint256[] private _nftMix;
     string public symbol;
     string public name;
     uint256 private _collectionCounter;
@@ -86,6 +87,7 @@ contract AutographData {
     mapping(uint256 => mapping(uint256 => uint16)) private _publicationGallery;
     mapping(uint16 => uint256) private _collectionCount;
     mapping(uint256 => uint16) private _collectionGallery;
+    mapping(uint256 => mapping(address => bool)) private _collectionCurrency;
 
     constructor(
         string memory _symbol,
@@ -146,6 +148,16 @@ contract AutographData {
 
             _galleryCollections[_galleryCounter].push(_collectionCounter);
             _collectionGallery[_collectionCounter] = _galleryCounter;
+
+            if (_collections[_galleryCounter][_collectionCounter].amount > 2) {
+                _nftMix.push(_collectionCounter);
+            }
+
+            for (uint8 k = 0; k < _colls.acceptedTokens[i].length; k++) {
+                _collectionCurrency[_collectionCounter][
+                    _colls.acceptedTokens[i][k]
+                ] = true;
+            }
         }
 
         _collectionCount[_galleryCounter] = _colls.amounts.length;
@@ -180,6 +192,16 @@ contract AutographData {
             _collections[_galleryId][_collectionCounter].designer = _designer;
 
             _galleryCollections[_galleryId].push(_collectionCounter);
+
+            if (_collections[_galleryCounter][_collectionCounter].amount > 2) {
+                _nftMix.push(_collectionCounter);
+            }
+
+            for (uint8 k = 0; k < _colls.acceptedTokens[i].length; k++) {
+                _collectionCurrency[_collectionCounter][
+                    _colls.acceptedTokens[i][k]
+                ] = true;
+            }
         }
 
         _collectionCount[_galleryId] =
@@ -226,9 +248,23 @@ contract AutographData {
 
             uint256[] memory _profs = _coll.profileIds;
 
+            for (uint16 k = 0; k < _nftMix.length; k++) {
+                if (_nftMix[k] == _coll.collectionId) {
+                    _nftMix[k] = _nftMix[_nftMix.length - 1];
+                    _nftMix.pop();
+                    return;
+                }
+            }
+
             for (uint16 j = 0; j < _profs.length; j++) {
                 delete _publicationCollection[_profs[j]][_coll.pubIds[j]];
                 delete _publicationGallery[_profs[j]][_coll.pubIds[j]];
+            }
+
+            for (uint8 k = 0; k < _coll.acceptedTokens.length; k++) {
+                delete _collectionCurrency[_coll.collectionId][
+                    _coll.acceptedTokens[k]
+                ];
             }
 
             delete _coll;
@@ -272,10 +308,28 @@ contract AutographData {
             ];
         }
 
-        delete _collectionGallery[_collectionCounter];
+        for (
+            uint8 k = 0;
+            k < _collections[_galleryId][_collectionId].acceptedTokens.length;
+            k++
+        ) {
+            delete _collectionCurrency[_collectionId][
+                _collections[_galleryId][_collectionId].acceptedTokens[k]
+            ];
+        }
+
+        delete _collectionGallery[_collectionId];
         delete _collections[_galleryId][_collectionId];
 
         _collectionCount[_galleryId] = _collectionCount[_galleryId] - 1;
+
+        for (uint16 i = 0; i < _nftMix.length; i++) {
+            if (_nftMix[i] == _collectionId) {
+                _nftMix[i] = _nftMix[_nftMix.length - 1];
+                _nftMix.pop();
+                return;
+            }
+        }
 
         emit CollectionDeleted(_collectionId, _galleryId);
     }
@@ -289,6 +343,30 @@ contract AutographData {
 
         if (!_galleryEditable[_galleryId]) {
             _galleryEditable[_galleryId] = false;
+        }
+
+        if (
+            _collections[_galleryId][_collectionId].mintedTokenIds.length <=
+            _collections[_galleryId][_collectionId].amount
+        ) {
+            if (
+                _collections[_galleryId][_collectionId].amount -
+                    _collections[_galleryId][_collectionId]
+                        .mintedTokenIds
+                        .length <
+                2
+            ) {
+                for (uint16 k = 0; k < _nftMix.length; k++) {
+                    if (
+                        _nftMix[k] ==
+                        _collections[_galleryId][_collectionId].collectionId
+                    ) {
+                        _nftMix[k] = _nftMix[_nftMix.length - 1];
+                        _nftMix.pop();
+                        return;
+                    }
+                }
+            }
         }
 
         emit CollectionTokenMinted(_tokenId, _collectionId, _galleryId);
@@ -431,6 +509,13 @@ contract AutographData {
         return _collections[_galleryId][_collectionId].mintedTokenIds;
     }
 
+    function getAutographCurrencyIsAccepted(
+        address _currency,
+        uint256 _collectionId
+    ) public view returns (bool) {
+        return _collectionCurrency[_collectionId][_currency];
+    }
+
     function getGalleryCollectionCount(
         uint16 _galleryId
     ) public view returns (uint256) {
@@ -447,6 +532,10 @@ contract AutographData {
         uint256 _collectionId
     ) public view returns (uint16) {
         return _collectionGallery[_collectionId];
+    }
+
+    function getNFTMix() public view returns (uint256[] memory) {
+        return _nftMix;
     }
 
     function getCollectionCounter() public view returns (uint256) {
