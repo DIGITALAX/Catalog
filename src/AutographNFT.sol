@@ -3,12 +3,16 @@ pragma solidity ^0.8.26;
 
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "./AutographAccessControl.sol";
+import "./AutographData.sol";
 
 contract AutographNFT is ERC721Enumerable {
     AutographAccessControl public autographAccessControl;
-    uint256 private _tokenIds;
+    AutographData public autographData;
+    uint256 private _supply;
 
     error AddressNotVerified();
+
+    event BatchTokenMinted(address purchaser, uint256[] tokenIds);
 
     modifier OnlyAdmin() {
         if (!autographAccessControl.isAdmin(msg.sender)) {
@@ -25,35 +29,36 @@ contract AutographNFT is ERC721Enumerable {
     }
 
     constructor(
-        address _autographAccessControlAddress
+        address _autographAccessControlAddress,
+        address _autographDataAddress
     ) ERC721("AutographNFT", "CNFT") {
         autographAccessControl = AutographAccessControl(
             _autographAccessControlAddress
         );
+        autographData = AutographData(_autographDataAddress);
     }
 
-   
     function mintBatch(
-        string memory _uri,
         address _purchaserAddress,
-        address _chosenCurrency,
         uint256 _amount
     ) public OnlyOpenAction {
         uint256[] memory tokenIds = new uint256[](_amount);
-        uint256 _supply = autographData.getAutographSupply();
+
         for (uint256 i = 0; i < _amount; i++) {
-            PrintLibrary.Token memory newToken = PrintLibrary.Token({
-                uri: _uri,
-                chosenCurrency: _chosenCurrency,
-                tokenId: _supply + i + 1,
-                collectionId: _collectionId,
-                index: _chosenIndex
-            });
-            _safeMint(_purchaserAddress, _supply + i + 1);
-            printData.setNFT(newToken);
-            tokenIds[i] = _supply + i + 1;
+            _supply++;
+            _safeMint(_purchaserAddress, _supply);
         }
 
         emit BatchTokenMinted(_purchaserAddress, tokenIds);
+    }
+
+    function tokenURI(
+        uint256 _tokenId
+    ) public view virtual override returns (string memory) {
+        return autographData.getAutographURIById(0);
+    }
+
+    function getTokenSupply() public view returns (uint256) {
+        return _supply;
     }
 }

@@ -65,4 +65,9 @@ contract AutographLibrary {
         uint256 collectionId;
         CollectionType collectionType;
     }
+
+    struct CollectionMap {
+        uint256 collectionId;
+        uint16 galleryId;
+    }
 }

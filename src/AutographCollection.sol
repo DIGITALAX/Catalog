@@ -10,9 +10,12 @@ contract AutographCollection is ERC721Enumerable {
     AutographAccessControl public autographAccessControl;
     AutographData public autographData;
     AutographMarket public autographMarket;
+    uint256 private _supply;
 
     error AddressNotVerified();
     error NotEditable();
+
+    mapping(uint256 => AutographLibrary.CollectionMap) _collectionMap;
 
     modifier OnlyDesigner() {
         if (!autographAccessControl.isDesigner(msg.sender)) {
@@ -61,7 +64,7 @@ contract AutographCollection is ERC721Enumerable {
             revert NotEditable();
         }
 
-        autographData.getMintedCollectionIdsByGalleryId();
+        autographData.deleteGallery(msg.sender, _galleryId);
     }
 
     function deleteCollection(
@@ -78,5 +81,42 @@ contract AutographCollection is ERC721Enumerable {
         autographData.deleteCollection(_collectionId, _galleryId);
     }
 
-    function mintCollection() external OnlyMarket {}
+    function addCollections(
+        AutographLibrary.CollectionInit memory _colls,
+        uint16 _galleryId
+    ) public OnlyDesigner {
+        autographData.addCollections(_colls, msg.sender, _galleryId);
+    }
+
+    function mintCollection(
+        address _purchaserAddress,
+        uint256 _collectionId,
+        uint16 _galleryId
+    ) external OnlyMarket {
+        _supply++;
+        _safeMint(_purchaserAddress, _supply);
+
+        _collectionMap[_supply] = AutographLibrary.CollectionMap({
+            collectionId: _collectionId,
+            galleryId: _galleryId
+        });
+
+        autographData.setMintedTokens(_supply, _collectionId, _galleryId);
+    }
+
+    function tokenURI(
+        uint256 _tokenId
+    ) public view virtual override returns (string memory) {
+        AutographLibrary.CollectionMap memory info = _collectionMap[_tokenId];
+
+        return
+            autographData.getCollectionURIByGalleryId(
+                info.collectionId,
+                info.galleryId
+            );
+    }
+
+    function getTokenSupply() public view returns (uint256) {
+        return _supply;
+    }
 }

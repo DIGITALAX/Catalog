@@ -19,13 +19,14 @@ contract AutographOpenAction is
     ILensModule,
     IPublicationActionModule
 {
-    AutographData private autographData;
-    AutographAccessControl private autographAccessControl;
-    AutographMarket private autographMarket;
+    AutographData public autographData;
+    AutographAccessControl public autographAccessControl;
+    AutographMarket public autographMarket;
     string private _metadata;
 
     error CurrencyNotWhitelisted();
     error InvalidAddress();
+    error ExceedAmount();
 
     IModuleRegistry public immutable MODULE_GLOBALS;
 
@@ -76,7 +77,7 @@ contract AutographOpenAction is
             );
         } else if (autographAccessControl.isDesigner(_executor)) {
             if (
-                autographData.getCollectionDesignerByGallery(
+                autographData.getCollectionDesignerByGalleryId(
                     _autographCreator.collectionId,
                     _autographCreator.galleryId
                 ) !=
@@ -108,126 +109,82 @@ contract AutographOpenAction is
         Types.ProcessActionParams calldata _params
     ) external override onlyHub returns (bytes memory) {
         (
-            uint256[] memory _chosenIndexes,
-            uint256[] memory _quantities,
+            uint8[] memory _quantities,
+            uint8[] memory _chosenIndexes,
+            address[] memory _currencies,
             AutographLibrary.AutographType[] memory _types,
-            string memory _encryptedFulfillment,
-            address _currency
+            string memory _encryptedFulfillment
         ) = abi.decode(
                 _params.actionModuleData,
                 (
-                    uint256[],
-                    uint256[],
-                    string,
-                    address,
-                    AutographLibrary.AutographType
+                    uint8[],
+                    uint8[],
+                    address[],
+                    AutographLibrary.AutographType[],
+                    string
                 )
             );
 
-        if (!MODULE_GLOBALS.isErc20CurrencyRegistered(_currency)) {
-            revert CurrencyNotWhitelisted();
-        }
+        for (uint8 i = 0; i < _currencies.length; i++) {
+            address _currency = _currencies[i];
 
-        uint256 _grandTotal = _managePurchase(
-            _params,
-            _currency,
-            _types,
-            _chosenIndexes,
-            _quantities
-        );
-
-        autographMarket.buyTokens(_buyTokensParams);
-
-        return abi.encode(_types, _currency, _chosenIndexes);
-    }
-
-    function _managePurchase(
-        Types.ProcessActionParams calldata _params,
-        uint256[] memory _quantities,
-        uint256[] memory _chosenIndexes,
-        AutographLibrary.AutographType[] memory _types,
-        address _currency
-    ) internal returns (uint256, bool) {
-        uint256 _total = 0;
-        for (uint256 i = 0; i < _chosenIndexes.length; i++) {
-            if (
-                !autographData.getIsCollectionTokenAccepted(
-                    _collectionId,
-                    _currency
-                )
-            ) {
+            if (!MODULE_GLOBALS.isErc20CurrencyRegistered(_currency)) {
                 revert CurrencyNotWhitelisted();
             }
+        }
 
-            if (
-                printDesignData.getCollectionTokensMinted(_collectionId) +
-                    _quantities[i] >
-                printDesignData.getCollectionAmount(_collectionId)
-            ) {
-                revert ExceedAmount();
+        uint16 _galleryId = autographData.getGalleryByPublication(
+            _params.publicationActedProfileId,
+            _params.publicationActedId
+        );
+        uint256[] memory _collections = autographData.getGalleryCollections(
+            _galleryId
+        );
+
+        for (uint256 j = 0; j < _collections.length; j++) {
+            address[] memory acceptedTokens = autographData
+                .getCollectionAcceptedTokensByGalleryId(
+                    _collections[j],
+                    _galleryId
+                );
+            bool _found = false;
+
+            for (uint256 k = 0; k < acceptedTokens.length; k++) {
+                for (uint256 l = 0; l < _currencies.length; l++) {
+                    if (_currencies[l] == acceptedTokens[k]) {
+                        _found = true;
+                        break;
+                    }
+                }
+                if (_found) {
+                    break;
+                }
             }
 
-            _total = _transferTokens(
-                _collectionId,
-                _chosenIndexes[i],
-                _quantities[i],
-                _currency,
-                printDesignData.getCollectionCreator(_collectionId),
-                _buyer
-            );
+            if (!_found) {
+                revert CurrencyNotWhitelisted();
+            }
         }
 
-        return _total;
-    }
-
-    function _transferTokens(
-        uint256 _collectionId,
-        uint256 _chosenIndex,
-        uint256 _chosenAmount,
-        address _chosenCurrency,
-        address _designer,
-        address _buyer
-    ) internal returns (uint256) {
-        uint256 _printType = printDesignData.getCollectionPrintType(
-            _collectionId
+        uint256 _collectionId = autographData.getCollectionByPublication(
+            _params.publicationActedProfileId,
+            _params.publicationActedId
         );
 
-        if (_collectionId == 0) {
-            // mintea al catalogo
-        } else
-            uint256 _totalPrice = printDesignData.getCollectionPrices(
-                _collectionId
-            )[_chosenIndex] * _chosenAmount;
+        uint256[] memory _collectionIds = new uint256[](1);
+        _collectionIds[0] = _collectionId;
 
-        uint256 _calculatedPrice = _calculateAmount(
-            _chosenCurrency,
-            _totalPrice
-        );
-        uint256 _calculatedBase = _calculateAmount(
-            _chosenCurrency,
-            _fulfillerBase * _chosenAmount
+        autographMarket.buyTokens(
+            _currencies,
+            _collectionIds,
+            _quantities,
+            _chosenIndexes,
+            _types,
+            _encryptedFulfillment,
+            _params.actorProfileOwner
         );
 
-        uint256 _fulfillerAmount = _calculatedBase +
-            ((_fulfillerSplit * _calculatedPrice) / 1e20);
-
-        if (_fulfillerAmount > 0) {
-            IERC20(_chosenCurrency).transferFrom(
-                _buyer,
-                _fulfiller,
-                _fulfillerAmount
-            );
-        }
-
-        if ((_calculatedPrice - _fulfillerAmount) > 0) {
-            IERC20(_chosenCurrency).transferFrom(
-                _buyer,
-                _designer,
-                _calculatedPrice - _fulfillerAmount
-            );
-        }
-
-        return _calculatedPrice;
+        return abi.encode(_types, _currencies, _chosenIndexes);
     }
 
     function supportsInterface(
