@@ -53,14 +53,16 @@ contract AutographMarket {
     function buyTokens(
         address[] memory _currencies,
         uint256[] memory _collectionIds,
+        uint256[] memory _maxAmount,
         uint8[] memory _quantities,
         AutographLibrary.AutographType[] memory _types,
         string memory _encryptedFulfillment
     ) external {
         uint256 _total = _checkAndSend(
             _currencies,
-            _quantities,
             _collectionIds,
+            _maxAmount,
+            _quantities,
             _types,
             msg.sender
         );
@@ -88,8 +90,9 @@ contract AutographMarket {
 
         uint256 _total = _checkAndSend(
             _currencies,
-            _quantities,
             _collectionIds,
+            new uint256[](1),
+            _quantities,
             _types,
             _buyer
         );
@@ -99,8 +102,9 @@ contract AutographMarket {
 
     function _checkAndSend(
         address[] memory _currencies,
-        uint8[] memory _quantities,
         uint256[] memory _collectionIds,
+        uint256[] memory _maxAmount,
+        uint8[] memory _quantities,
         AutographLibrary.AutographType[] memory _types,
         address _buyer
     ) internal returns (uint256) {
@@ -160,7 +164,7 @@ contract AutographMarket {
                     _types[i]
                 );
             } else {
-                _total += _createMix(_buyer, _currencies[i]);
+                _total += _createMix(_buyer, _currencies[i], _maxAmount[i]);
 
                 createSubOrderMix();
             }
@@ -295,23 +299,20 @@ contract AutographMarket {
 
     function _createMix(
         address _buyer,
-        address _currency
+        address _currency,
+        uint256 _maxAmount
     ) internal returns (uint256) {
-        uint256[] memory _selectedCollectionIds = _selectRandomNFTs(_currency);
-        uint16[] memory _galleries = new uint16[](
-            _selectedCollectionIds.length
-        );
+        (
+            uint256[] memory _selectedCollectionIds,
+            uint16[] memory _galleries
+        ) = _selectRandomNFTs(_currency, _maxAmount);
         uint256 _total = 0;
         for (uint256 i = 0; i < _selectedCollectionIds.length; i++) {
-            uint16 _galleryId = autographData.getCollectionGallery(
-                _selectedCollectionIds[i]
-            );
-            _galleries[i] = _galleryId;
             uint256 _sub = _calculateAmount(
                 _currency,
                 autographData.getCollectionPriceByGalleryId(
                     _selectedCollectionIds[i],
-                    _galleryId
+                    _galleries[i]
                 )
             );
 
@@ -319,7 +320,7 @@ contract AutographMarket {
                 _buyer,
                 autographData.getCollectionDesignerByGalleryId(
                     _selectedCollectionIds[i],
-                    _galleryId
+                    _galleries[i]
                 ),
                 _sub
             );
@@ -333,15 +334,18 @@ contract AutographMarket {
     }
 
     function _selectRandomNFTs(
-        address _currency
-    ) internal view returns (uint256[] memory) {
+        address _currency,
+        uint256 _maxAmount
+    ) internal view returns (uint256[] memory, uint16[] memory) {
         uint256[] memory _availableCollectionIds = autographData.getNFTMix();
         uint256 _numNFTs = 3 +
             (uint256(
                 keccak256(abi.encodePacked(block.timestamp, block.prevrandao))
             ) % 3);
         uint256[] memory _selectedCollectionIds = new uint256[](_numNFTs);
+        uint16[] memory _galleries = new uint16[](_numNFTs);
         uint256 _count = 0;
+        uint256 _total = 0;
 
         while (_count < _numNFTs) {
             uint256 index = uint256(
@@ -351,26 +355,49 @@ contract AutographMarket {
             ) % _availableCollectionIds.length;
             uint256 _selectedCollectionId = _availableCollectionIds[index];
 
-            bool _alreadySelected = false;
-            for (uint256 i = 0; i < _count; i++) {
-                if (_selectedCollectionIds[i] == _selectedCollectionId) {
-                    _alreadySelected = true;
-                    break;
-                }
+            if (
+                _isAlreadySelected(
+                    _selectedCollectionIds,
+                    _selectedCollectionId,
+                    _count
+                )
+            ) {
+                continue;
             }
 
+            uint16 _galleryId = autographData.getCollectionGallery(
+                _selectedCollectionId
+            );
+            uint256 _price = autographData.getCollectionPriceByGalleryId(
+                _selectedCollectionId,
+                _galleryId
+            );
+
             if (
-                !_alreadySelected &&
                 autographData.getAutographCurrencyIsAccepted(
                     _currency,
                     _selectedCollectionId
-                )
+                ) && _total + _price <= _maxAmount
             ) {
                 _selectedCollectionIds[_count] = _selectedCollectionId;
+                _galleries[_count] = _galleryId;
                 _count++;
             }
         }
 
-        return _selectedCollectionIds;
+        return (_selectedCollectionIds, _galleries);
+    }
+
+    function _isAlreadySelected(
+        uint256[] memory _selectedCollectionIds,
+        uint256 _selectedCollectionId,
+        uint256 _count
+    ) internal pure returns (bool) {
+        for (uint256 i = 0; i < _count; i++) {
+            if (_selectedCollectionIds[i] == _selectedCollectionId) {
+                return true;
+            }
+        }
+        return false;
     }
 }
