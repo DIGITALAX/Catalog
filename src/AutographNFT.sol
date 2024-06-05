@@ -8,6 +8,7 @@ import "./AutographData.sol";
 contract AutographNFT is ERC721Enumerable {
     AutographAccessControl public autographAccessControl;
     AutographData public autographData;
+    address public autographMarket;
     uint256 private _supply;
 
     error AddressNotVerified();
@@ -28,23 +29,32 @@ contract AutographNFT is ERC721Enumerable {
         _;
     }
 
+    modifier OnlyMarket() {
+        if (msg.sender != autographMarket) {
+            revert AddressNotVerified();
+        }
+        _;
+    }
+
     constructor(
         address _autographAccessControlAddress,
-        address _autographDataAddress
+        address _autographDataAddress,
+        address _autographMarketAddress
     ) ERC721("AutographNFT", "CNFT") {
         autographAccessControl = AutographAccessControl(
             _autographAccessControlAddress
         );
         autographData = AutographData(_autographDataAddress);
+        autographMarket = _autographMarketAddress;
     }
 
     function mintBatch(
         address _purchaserAddress,
-        uint256 _amount
-    ) public OnlyOpenAction {
+        uint8 _amount
+    ) public OnlyMarket {
         uint256[] memory tokenIds = new uint256[](_amount);
 
-        for (uint256 i = 0; i < _amount; i++) {
+        for (uint8 i = 0; i < _amount; i++) {
             _supply++;
             _safeMint(_purchaserAddress, _supply);
         }
@@ -55,7 +65,7 @@ contract AutographNFT is ERC721Enumerable {
     function tokenURI(
         uint256 _tokenId
     ) public view virtual override returns (string memory) {
-        return autographData.getAutographURIById(0);
+        return autographData.getAutographURI();
     }
 
     function getTokenSupply() public view returns (uint256) {

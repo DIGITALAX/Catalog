@@ -5,6 +5,7 @@ pragma solidity ^0.8.23;
 contract AutographAccessControl {
     string public symbol;
     string public name;
+    address private _fulfiller;
 
     mapping(address => bool) private _admins;
     mapping(address => bool) private _designers;
@@ -104,6 +105,10 @@ contract AutographAccessControl {
         emit OpenActionRemoved(_openAction);
     }
 
+    function setFulfiller(address _fulfillerAddress) external onlyAdmin {
+        _fulfiller = _fulfillerAddress;
+    }
+
     function isAdmin(address _address) public view returns (bool) {
         return _admins[_address];
     }
@@ -118,5 +123,9 @@ contract AutographAccessControl {
 
     function isNPC(address _address) public view returns (bool) {
         return _npcs[_address];
+    }
+
+    function getFulfiller() public view returns (address) {
+        return _fulfiller;
     }
 }

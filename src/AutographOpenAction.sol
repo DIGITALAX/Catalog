@@ -67,12 +67,13 @@ contract AutographOpenAction is
         ) {
             autographData.createAutograph(
                 AutographLibrary.AutographInit({
-                    prices: _autographCreator.prices,
+                    price: _autographCreator.price,
                     acceptedTokens: _autographCreator.acceptedTokens,
                     uri: _autographCreator.uri,
                     pubId: _pubId,
                     profileId: _profileId,
-                    amount: _autographCreator.amount
+                    amount: _autographCreator.amount,
+                    designer: _executor
                 })
             );
         } else if (autographAccessControl.isDesigner(_executor)) {
@@ -100,7 +101,7 @@ contract AutographOpenAction is
                 _autographCreator.autographType,
                 _autographCreator.amount,
                 _autographCreator.uri,
-                _autographCreator.prices,
+                _autographCreator.price,
                 _autographCreator.acceptedTokens
             );
     }
@@ -109,61 +110,17 @@ contract AutographOpenAction is
         Types.ProcessActionParams calldata _params
     ) external override onlyHub returns (bytes memory) {
         (
-            uint8[] memory _quantities,
-            uint8[] memory _chosenIndexes,
-            address[] memory _currencies,
-            AutographLibrary.AutographType[] memory _types,
-            string memory _encryptedFulfillment
+            string memory _encryptedFulfillment,
+            address _currency,
+            uint8 _quantity,
+            AutographLibrary.AutographType _type
         ) = abi.decode(
                 _params.actionModuleData,
-                (
-                    uint8[],
-                    uint8[],
-                    address[],
-                    AutographLibrary.AutographType[],
-                    string
-                )
+                (string, address, uint8, AutographLibrary.AutographType)
             );
 
-        for (uint8 i = 0; i < _currencies.length; i++) {
-            address _currency = _currencies[i];
-
-            if (!MODULE_GLOBALS.isErc20CurrencyRegistered(_currency)) {
-                revert CurrencyNotWhitelisted();
-            }
-        }
-
-        uint16 _galleryId = autographData.getGalleryByPublication(
-            _params.publicationActedProfileId,
-            _params.publicationActedId
-        );
-        uint256[] memory _collections = autographData.getGalleryCollections(
-            _galleryId
-        );
-
-        for (uint256 j = 0; j < _collections.length; j++) {
-            address[] memory acceptedTokens = autographData
-                .getCollectionAcceptedTokensByGalleryId(
-                    _collections[j],
-                    _galleryId
-                );
-            bool _found = false;
-
-            for (uint256 k = 0; k < acceptedTokens.length; k++) {
-                for (uint256 l = 0; l < _currencies.length; l++) {
-                    if (_currencies[l] == acceptedTokens[k]) {
-                        _found = true;
-                        break;
-                    }
-                }
-                if (_found) {
-                    break;
-                }
-            }
-
-            if (!_found) {
-                revert CurrencyNotWhitelisted();
-            }
+        if (!MODULE_GLOBALS.isErc20CurrencyRegistered(_currency)) {
+            revert CurrencyNotWhitelisted();
         }
 
         uint256 _collectionId = autographData.getCollectionByPublication(
@@ -171,20 +128,16 @@ contract AutographOpenAction is
             _params.publicationActedId
         );
 
-        uint256[] memory _collectionIds = new uint256[](1);
-        _collectionIds[0] = _collectionId;
-
-        autographMarket.buyTokens(
-            _currencies,
-            _collectionIds,
-            _quantities,
-            _chosenIndexes,
-            _types,
+        autographMarket.buyTokenAction(
             _encryptedFulfillment,
-            _params.actorProfileOwner
+            _params.actorProfileOwner,
+            _currency,
+            _collectionId,
+            _quantity,
+            _type
         );
 
-        return abi.encode(_types, _currencies, _chosenIndexes);
+        return abi.encode(_type, _currency);
     }
 
     function supportsInterface(
