@@ -73,6 +73,7 @@ contract AutographOpenAction is
                     pubId: _pubId,
                     profileId: _profileId,
                     amount: _autographCreator.amount,
+                    pages: _autographCreator.pages,
                     designer: _executor
                 })
             );

@@ -16,7 +16,21 @@ contract AutographLibrary {
         Digital
     }
 
+    enum LensType {
+        Catalog,
+        Comment,
+        Publication,
+        Autograph
+    }
+
+    struct Publication {
+        address artist;
+        address npc;
+        LensType lensType;
+    }   
+
     struct OpenActionParams {
+        string[] pages;
         address[] acceptedTokens;
         string uri;
         AutographType autographType;
@@ -27,6 +41,7 @@ contract AutographLibrary {
     }
 
     struct AutographInit {
+        string[] pages;
         address[] acceptedTokens;
         string uri;
         address designer;
@@ -37,6 +52,7 @@ contract AutographLibrary {
     }
 
     struct Autograph {
+        string[] pages;
         address[] acceptedTokens;
         string uri;
         address designer;
