@@ -34,7 +34,7 @@ contract AutographAccessControl {
 
     constructor() {
         _admins[msg.sender] = true;
-        symbol = "CAC";
+        symbol = "AAC";
         name = "AutographAccessControl";
     }
 

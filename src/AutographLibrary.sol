@@ -27,7 +27,7 @@ contract AutographLibrary {
         address artist;
         address npc;
         LensType lensType;
-    }   
+    }
 
     struct OpenActionParams {
         string[] pages;
@@ -38,6 +38,7 @@ contract AutographLibrary {
         uint256 amount;
         uint256 price;
         uint16 galleryId;
+        uint8 pageCount;
     }
 
     struct AutographInit {
@@ -49,6 +50,7 @@ contract AutographLibrary {
         uint256 price;
         uint256 pubId;
         uint256 profileId;
+        uint8 pageCount;
     }
 
     struct Autograph {
@@ -61,6 +63,7 @@ contract AutographLibrary {
         uint256 id;
         uint256 pubId;
         uint256 profileId;
+        uint8 pageCount;
     }
 
     struct CollectionInit {

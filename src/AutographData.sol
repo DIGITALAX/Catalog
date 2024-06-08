@@ -21,6 +21,7 @@ contract AutographData {
     uint16 private _galleryCounter;
 
     error InvalidAddress();
+    error CollectionNotFound();
 
     event AutographCreated(string uri, uint256 amount);
     event GalleryCreated(
@@ -118,6 +119,7 @@ contract AutographData {
         _autograph.pubId = _auto.pubId;
         _autograph.profileId = _auto.profileId;
         _autograph.pages = _auto.pages;
+        _autograph.pageCount = _auto.pageCount;
 
         emit AutographCreated(_auto.uri, _auto.amount);
     }
@@ -177,7 +179,7 @@ contract AutographData {
         _collectionCount[_galleryCounter] = _colls.amounts.length;
 
         uint[] memory _collectionCounts = new uint[](_colls.amounts.length);
-        for (uint i = _collectionCounter; i > 0; i--) {
+        for (uint i = 0; i < _colls.amounts.length; i++) {
             _collectionCounts[i] = _collectionCounter - i;
         }
         emit GalleryCreated(_collectionCounts, _designer, _galleryCounter);
@@ -224,7 +226,7 @@ contract AutographData {
             _colls.amounts.length;
 
         uint[] memory _collectionCounts = new uint[](_colls.amounts.length);
-        for (uint i = _collectionCounter; i > 0; i--) {
+        for (uint i = 0; i < _colls.amounts.length; i++) {
             _collectionCounts[i] = _collectionCounter - i;
         }
         emit GalleryUpdated(_collectionCounts, _designer, _galleryId);
@@ -307,12 +309,18 @@ contract AutographData {
     ) external OnlyCollection {
         uint256[] storage _colls = _galleryCollections[_galleryId];
 
+        bool collectionFound = false;
         for (uint16 i = 0; i < _colls.length; i++) {
             if (_colls[i] == _collectionId) {
                 _colls[i] = _colls[_colls.length - 1];
                 _colls.pop();
+                collectionFound = true;
                 break;
             }
+        }
+
+        if (!collectionFound) {
+            revert CollectionNotFound();
         }
 
         address _designer = getCollectionDesignerByGalleryId(
@@ -358,7 +366,9 @@ contract AutographData {
         delete _collectionGallery[_collectionId];
         delete _collections[_galleryId][_collectionId];
 
-        _collectionCount[_galleryId] = _collectionCount[_galleryId] - 1;
+        if (_collectionCount[_galleryId] > 0) {
+            _collectionCount[_galleryId]--;
+        }
 
         for (uint16 i = 0; i < _nftMix.length; i++) {
             if (_nftMix[i] == _collectionId) {
@@ -454,6 +464,10 @@ contract AutographData {
 
     function getAutographPrice() public view returns (uint256) {
         return _autograph.price;
+    }
+
+    function getAutographPageCount() public view returns (uint8) {
+        return _autograph.pageCount;
     }
 
     function getAutographPage(
