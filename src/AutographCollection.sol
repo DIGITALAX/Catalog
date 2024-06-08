@@ -35,16 +35,19 @@ contract AutographCollection is ERC721Enumerable {
         _;
     }
 
+    modifier OnlyAdmin() {
+        if (!autographAccessControl.isAdmin(msg.sender)) {
+            revert AddressNotVerified();
+        }
+        _;
+    }
+
     constructor(
-        address _autographAccessControlAddress,
-        address _autographDataAddress,
-        address _autographMarketAddress
+        address _autographAccessControlAddress
     ) ERC721("AutographCollection", "ACNFT") {
         autographAccessControl = AutographAccessControl(
             _autographAccessControlAddress
         );
-        autographData = AutographData(_autographDataAddress);
-        autographMarket = AutographMarket(_autographMarketAddress);
     }
 
     function createGallery(
@@ -263,5 +266,13 @@ contract AutographCollection is ERC721Enumerable {
             }
             _parentNFT[_childId] = 0;
         }
+    }
+
+    function setAutographData(address _autographData) public OnlyAdmin {
+        autographData = AutographData(_autographData);
+    }
+
+    function setAutographMarket(address _autographMarket) public OnlyAdmin {
+        autographMarket = AutographMarket(_autographMarket);
     }
 }

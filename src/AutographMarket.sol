@@ -30,24 +30,27 @@ contract AutographMarket {
         _;
     }
 
+    modifier OnlyAdmin() {
+        if (!autographAccessControl.isAdmin(msg.sender)) {
+            revert InvalidAddress();
+        }
+        _;
+    }
+
     constructor(
         string memory _symbol,
         string memory _name,
         address _autographAccessControl,
-        address _autographData,
         address _printSplitsData,
-        address _autographNFT,
-        address _autographCollection
+        address _autographNFT
     ) {
         symbol = _symbol;
         name = _name;
         autographAccessControl = AutographAccessControl(
             _autographAccessControl
         );
-        autographData = AutographData(_autographData);
         printSplitsData = PrintSplitsData(_printSplitsData);
         autographNFT = AutographNFT(_autographNFT);
-        autographCollection = AutographCollection(_autographCollection);
     }
 
     function buyTokens(
@@ -399,5 +402,17 @@ contract AutographMarket {
             }
         }
         return false;
+    }
+
+    function setAutographCollection(
+        address _autographCollection
+    ) public OnlyAdmin {
+        autographCollection = AutographCollection(_autographCollection);
+    }
+
+      function setAutographData(
+        address _autographData
+    ) public OnlyAdmin {
+        autographData = AutographData(_autographData);
     }
 }

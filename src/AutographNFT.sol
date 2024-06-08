@@ -37,15 +37,11 @@ contract AutographNFT is ERC721Enumerable {
     }
 
     constructor(
-        address _autographAccessControlAddress,
-        address _autographDataAddress,
-        address _autographMarketAddress
+        address _autographAccessControlAddress
     ) ERC721("AutographNFT", "CNFT") {
         autographAccessControl = AutographAccessControl(
             _autographAccessControlAddress
         );
-        autographData = AutographData(_autographDataAddress);
-        autographMarket = _autographMarketAddress;
     }
 
     function mintBatch(
@@ -70,5 +66,15 @@ contract AutographNFT is ERC721Enumerable {
 
     function getTokenSupply() public view returns (uint256) {
         return _supply;
+    }
+
+    function setAutographData(address _autographData) public OnlyAdmin {
+        autographData = AutographData(_autographData);
+    }
+
+    function setAutographMarketAddress(
+        address _autographMarketAddress
+    ) public OnlyAdmin {
+        autographMarket = _autographMarketAddress;
     }
 }

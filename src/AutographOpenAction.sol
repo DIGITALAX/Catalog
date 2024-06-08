@@ -74,7 +74,8 @@ contract AutographOpenAction is
                     profileId: _profileId,
                     amount: _autographCreator.amount,
                     pages: _autographCreator.pages,
-                    designer: _executor
+                    designer: _executor,
+                    pageCount: _autographCreator.pageCount
                 })
             );
         } else if (autographAccessControl.isDesigner(_executor)) {
