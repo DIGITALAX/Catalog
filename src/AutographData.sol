@@ -8,13 +8,15 @@ import "./AutographCollection.sol";
 
 contract AutographData {
     AutographAccessControl public autographAccessControl;
-    AutographCollection public autographCollection;
     AutographLibrary.Autograph private _autograph;
     address[] private _allArtists;
     uint256[] private _nftMix;
     string public symbol;
     string public name;
+    address public autographMarket;
+    address public autographCollection;
     uint256 private _collectionCounter;
+    uint256 private _orderCounter;
     uint256 private _vig;
     uint256 private _hoodieBase;
     uint256 private _shirtBase;
@@ -37,15 +39,20 @@ contract AutographData {
     event GalleryDeleted(address designer, uint16 galleryId);
     event CollectionDeleted(uint256 collectionId, uint16 galleryId);
     event CollectionTokenMinted(
-        uint256 tokenId,
-        uint256 collectionId,
-        uint16 galleryId
+        uint256[] tokenIds,
+        uint256[] collectionIds,
+        uint16[] galleryIds
     );
     event PublicationConnected(
         uint256 pubId,
         uint256 profileId,
         uint256 collectionId,
         uint16 galleryId
+    );
+    event OrderCreated(
+        AutographLibrary.AutographType[] subOrderTypes,
+        uint256 total,
+        uint256 orderId
     );
 
     modifier OnlyOpenAction() {
@@ -63,7 +70,14 @@ contract AutographData {
     }
 
     modifier OnlyCollection() {
-        if (msg.sender != address(autographCollection)) {
+        if (msg.sender != (autographCollection)) {
+            revert InvalidAddress();
+        }
+        _;
+    }
+
+    modifier OnlyMarket() {
+        if (msg.sender != (autographMarket)) {
             revert InvalidAddress();
         }
         _;
@@ -91,12 +105,15 @@ contract AutographData {
     mapping(uint256 => uint16) private _collectionGallery;
     mapping(uint256 => mapping(address => bool)) private _collectionCurrency;
     mapping(address => uint256[]) private _artistCollectionsAvailable;
+    mapping(address => uint256[]) private _buyerToOrders;
+    mapping(uint256 => AutographLibrary.Order) private _orders;
 
     constructor(
         string memory _symbol,
         string memory _name,
         address _autographAccessControl,
-        address _autographCollection
+        address _autographCollection,
+        address _autographMarket
     ) {
         symbol = _symbol;
         name = _name;
@@ -104,7 +121,8 @@ contract AutographData {
         autographAccessControl = AutographAccessControl(
             _autographAccessControl
         );
-        autographCollection = AutographCollection(_autographCollection);
+        autographCollection = _autographCollection;
+        autographMarket = _autographMarket;
     }
 
     function createAutograph(
@@ -382,64 +400,105 @@ contract AutographData {
     }
 
     function setMintedTokens(
-        uint256 _tokenId,
-        uint256 _collectionId,
-        uint16 _galleryId
+        uint256[] memory _tokenIds,
+        uint256[] memory _collectionIds,
+        uint16[] memory _galleryIds
     ) external OnlyCollection {
-        _collections[_galleryId][_collectionId].mintedTokenIds.push(_tokenId);
+        for (uint8 i = 0; i < _tokenIds.length; i++) {
+            _collections[_galleryIds[i]][_collectionIds[i]].mintedTokenIds.push(
+                    _tokenIds[i]
+                );
 
-        if (!_galleryEditable[_galleryId]) {
-            _galleryEditable[_galleryId] = false;
-        }
+            if (!_galleryEditable[_galleryIds[i]]) {
+                _galleryEditable[_galleryIds[i]] = false;
+            }
 
-        if (
-            _collections[_galleryId][_collectionId].mintedTokenIds.length <=
-            _collections[_galleryId][_collectionId].amount
-        ) {
             if (
-                _collections[_galleryId][_collectionId].amount -
-                    _collections[_galleryId][_collectionId]
-                        .mintedTokenIds
-                        .length <
-                2
+                _collections[_galleryIds[i]][_collectionIds[i]]
+                    .mintedTokenIds
+                    .length <=
+                _collections[_galleryIds[i]][_collectionIds[i]].amount
             ) {
-                for (uint16 k = 0; k < _nftMix.length; k++) {
+                if (
+                    _collections[_galleryIds[i]][_collectionIds[i]].amount -
+                        _collections[_galleryIds[i]][_collectionIds[i]]
+                            .mintedTokenIds
+                            .length <
+                    2
+                ) {
+                    for (uint16 k = 0; k < _nftMix.length; k++) {
+                        if (
+                            _nftMix[k] ==
+                            _collections[_galleryIds[i]][_collectionIds[i]]
+                                .collectionId
+                        ) {
+                            _nftMix[k] = _nftMix[_nftMix.length - 1];
+                            _nftMix.pop();
+                            return;
+                        }
+                    }
+                }
+
+                address _designer = getCollectionDesignerByGalleryId(
+                    _collectionIds[i],
+                    _galleryIds[i]
+                );
+
+                for (
+                    uint16 k = 0;
+                    k < _artistCollectionsAvailable[_designer].length;
+                    k++
+                ) {
                     if (
-                        _nftMix[k] ==
-                        _collections[_galleryId][_collectionId].collectionId
+                        _artistCollectionsAvailable[_designer][k] ==
+                        _collectionIds[i]
                     ) {
-                        _nftMix[k] = _nftMix[_nftMix.length - 1];
-                        _nftMix.pop();
-                        return;
+                        _artistCollectionsAvailable[_designer][
+                            k
+                        ] = _artistCollectionsAvailable[_designer][
+                            _artistCollectionsAvailable[_designer].length - 1
+                        ];
+                        _artistCollectionsAvailable[_designer].pop();
+                        break;
                     }
                 }
             }
-
-            address _designer = getCollectionDesignerByGalleryId(
-                _collectionId,
-                _galleryId
-            );
-
-            for (
-                uint16 i = 0;
-                i < _artistCollectionsAvailable[_designer].length;
-                i++
-            ) {
-                if (
-                    _artistCollectionsAvailable[_designer][i] == _collectionId
-                ) {
-                    _artistCollectionsAvailable[_designer][
-                        i
-                    ] = _artistCollectionsAvailable[_designer][
-                        _artistCollectionsAvailable[_designer].length - 1
-                    ];
-                    _artistCollectionsAvailable[_designer].pop();
-                    break;
-                }
-            }
         }
 
-        emit CollectionTokenMinted(_tokenId, _collectionId, _galleryId);
+        emit CollectionTokenMinted(_tokenIds, _collectionIds, _galleryIds);
+    }
+
+    function createOrder(
+        uint256[][] memory _mintedTokenIds,
+        address[] memory _currencies,
+        uint256[] memory _collectionIds,
+        uint8[] memory _amounts,
+        uint256[] memory _parentIds,
+        uint256[] memory _subTotals,
+        AutographLibrary.AutographType[] memory _subOrderTypes,
+        string memory _fulfillment,
+        address _buyer,
+        uint256 _total
+    ) external OnlyMarket {
+        _orderCounter++;
+
+        _buyerToOrders[_buyer].push(_orderCounter);
+
+        _orders[_orderCounter] = AutographLibrary.Order({
+            orderId: _orderCounter,
+            subOrderTypes: _subOrderTypes,
+            buyer: _buyer,
+            fulfillment: _fulfillment,
+            total: _total,
+            subTotals: _subTotals,
+            currencies: _currencies,
+            collectionIds: _collectionIds,
+            amounts: _amounts,
+            parentIds: _parentIds,
+            mintedTokenIds: _mintedTokenIds
+        });
+
+        emit OrderCreated(_subOrderTypes, _total, _orderCounter);
     }
 
     function setVig(uint256 _newVig) public OnlyAdmin {
@@ -626,6 +685,10 @@ contract AutographData {
 
     function getCollectionCounter() public view returns (uint256) {
         return _collectionCounter;
+    }
+
+    function getOrderCounter() public view returns (uint256) {
+        return _orderCounter;
     }
 
     function getGalleryCounter() public view returns (uint256) {
