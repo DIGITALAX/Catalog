@@ -39,7 +39,8 @@ contract NPCPublicationTest is Test {
             "ADATA",
             "Autograph Data",
             address(accessControl),
-            address(autographCollection)
+            address(autographCollection),
+            address(autographMarket)
         );
         npcPublication = new NPCPublication(
             "NPCP",

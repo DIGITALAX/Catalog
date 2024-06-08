@@ -92,4 +92,30 @@ contract AutographLibrary {
         uint256 collectionId;
         uint16 galleryId;
     }
+
+    struct Order {
+        uint256[][] mintedTokenIds;
+        address[] currencies;
+        uint256[] collectionIds;
+        uint256[] parentIds;
+        uint256[] subTotals;
+        uint8[] amounts;
+        AutographType[] subOrderTypes;
+        string fulfillment;
+        address buyer;
+        uint256 orderId;
+        uint256 total;
+    }
+
+    struct NonMixParams {
+        uint256[][] nftIds;
+        address[] currencies;
+        uint256[] collectionIds;
+        uint8[] quantities;
+        AutographType[] types;
+        uint256[] subTotals;
+        uint256[] parentIds;
+        address buyer;
+        uint256 index;
+    }
 }

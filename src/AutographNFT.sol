@@ -47,7 +47,7 @@ contract AutographNFT is ERC721Enumerable {
     function mintBatch(
         address _purchaserAddress,
         uint8 _amount
-    ) public OnlyMarket {
+    ) public OnlyMarket returns(uint256[] memory) {
         uint256[] memory tokenIds = new uint256[](_amount);
 
         for (uint8 i = 0; i < _amount; i++) {
@@ -56,6 +56,8 @@ contract AutographNFT is ERC721Enumerable {
         }
 
         emit BatchTokenMinted(_purchaserAddress, tokenIds);
+
+        return tokenIds;
     }
 
     function tokenURI(

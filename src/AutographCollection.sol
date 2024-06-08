@@ -100,18 +100,26 @@ contract AutographCollection is ERC721Enumerable {
         uint256 _collectionId,
         uint16 _galleryId,
         uint8 _amount
-    ) external OnlyMarket {
+    ) external OnlyMarket returns (uint256[] memory) {
+        uint256[] memory _tokenIds = new uint256[](_amount);
+        uint256[] memory _collectionIds = new uint256[](1);
+        _collectionIds[0] = _collectionId;
+        uint16[] memory _galleryIds = new uint16[](1);
+        _galleryIds[0] = _galleryId;
+
         for (uint8 i = 0; i < _amount; i++) {
             _supply++;
             _safeMint(_purchaserAddress, _supply);
-
+            _tokenIds[i] = _supply;
             _collectionMap[_supply] = AutographLibrary.CollectionMap({
                 collectionId: _collectionId,
                 galleryId: _galleryId
             });
-
-            autographData.setMintedTokens(_supply, _collectionId, _galleryId);
         }
+
+        autographData.setMintedTokens(_tokenIds, _collectionIds, _galleryIds);
+
+        return _tokenIds;
     }
 
     function tokenURI(
@@ -134,13 +142,15 @@ contract AutographCollection is ERC721Enumerable {
         uint256[] memory _collections,
         uint16[] memory _galleries,
         address _purchaserAddress
-    ) external OnlyMarket {
+    ) external OnlyMarket returns (uint256[] memory, uint256) {
         _supply++;
         _safeMint(_purchaserAddress, _supply);
         uint256 _parentId = _supply;
+        uint256[] memory _childIds = new uint256[](_collections.length);
 
         for (uint256 i = 0; i < _collections.length; i++) {
             _supply++;
+            _childIds[i] = _supply;
             _safeMint(_purchaserAddress, _supply);
             _childNFTs[_parentId].push(_supply);
             _parentNFT[_supply] = _parentId;
@@ -149,13 +159,11 @@ contract AutographCollection is ERC721Enumerable {
                 collectionId: _collections[i],
                 galleryId: _galleries[i]
             });
-
-            autographData.setMintedTokens(
-                _supply,
-                _collections[i],
-                _galleries[i]
-            );
         }
+
+        autographData.setMintedTokens(_childIds, _collections, _galleries);
+
+        return (_childIds, _parentId);
     }
 
     function transferFrom(

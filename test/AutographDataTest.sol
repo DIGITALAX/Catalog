@@ -41,7 +41,8 @@ contract AutographDataTest is Test {
             "ADATA",
             "Autograph Data",
             address(accessControl),
-            address(autographCollection)
+            address(autographCollection),
+            address(autographMarket)
         );
 
         autographCollection.setAutographData(address(this));
@@ -244,16 +245,19 @@ contract AutographDataTest is Test {
     }
 
     function testSetMintedTokens() public {
-        uint256 tokenId = 1;
-        uint256 collectionId = 1;
-        uint16 galleryId = 1;
+        uint256[] memory tokenIds = new uint256[](1);
+        tokenIds[0] = 1;
+        uint256[] memory collectionIds = new uint256[](1);
+        collectionIds[0] = 1;
+        uint16[] memory galleryIds = new uint16[](1);
+        galleryIds[0] = 1;
 
         vm.prank(address(autographCollection));
-        autographData.setMintedTokens(tokenId, collectionId, galleryId);
+        autographData.setMintedTokens(tokenIds, collectionIds, galleryIds);
 
         uint256[] memory mintedTokenIds = autographData
-            .getMintedTokenIdsByGalleryId(collectionId, galleryId);
-        assertEq(mintedTokenIds[0], tokenId);
+            .getMintedTokenIdsByGalleryId(collectionIds[0], galleryIds[0]);
+        assertEq(mintedTokenIds[0], tokenIds[0]);
     }
 
     function testSetVig() public {
