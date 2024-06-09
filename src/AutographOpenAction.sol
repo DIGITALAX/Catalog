@@ -9,7 +9,6 @@ import "./AutographMarket.sol";
 
 import {HubRestricted} from "./lens/v2/base/HubRestricted.sol";
 import {Types} from "./lens/v2/libraries/constants/Types.sol";
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IPublicationActionModule} from "./lens/v2/interfaces/IPublicationActionModule.sol";
 import {ILensModule} from "./lens/v2/interfaces/ILensModule.sol";
 import {IModuleRegistry} from "./lens/v2/interfaces/IModuleRegistry.sol";
@@ -27,6 +26,7 @@ contract AutographOpenAction is
     error CurrencyNotWhitelisted();
     error InvalidAddress();
     error ExceedAmount();
+    error InvalidAmounts();
 
     IModuleRegistry public immutable MODULE_GLOBALS;
 
@@ -125,14 +125,18 @@ contract AutographOpenAction is
         //     revert CurrencyNotWhitelisted();
         // }
 
-        uint256 _collectionId = autographData.getCollectionByPublication(
-            _params.publicationActedProfileId,
-            _params.publicationActedId
-        );
+        uint256 _collectionId = 0;
+
+        if (_type != AutographLibrary.AutographType.Catalog) {
+            _collectionId = autographData.getCollectionByPublication(
+                _params.publicationActedProfileId,
+                _params.publicationActedId
+            );
+        }
 
         autographMarket.buyTokenAction(
             _encryptedFulfillment,
-            _params.actorProfileOwner,
+            _params.transactionExecutor,
             _currency,
             _collectionId,
             _quantity,

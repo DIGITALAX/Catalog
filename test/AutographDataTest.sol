@@ -2,6 +2,7 @@
 pragma solidity ^0.8.26;
 
 import "forge-std/Test.sol";
+import "forge-std/console.sol";
 import "../src/AutographData.sol";
 import "../src/AutographNFT.sol";
 import "../src/AutographAccessControl.sol";
@@ -10,6 +11,7 @@ import "../src/AutographCollection.sol";
 import "../src/AutographOpenAction.sol";
 import "../src/print/PrintSplitsData.sol";
 import "../src/print/PrintAccessControl.sol";
+import "../src/TestERC20.sol";
 
 contract AutographDataTest is Test {
     AutographData public autographData;
@@ -20,17 +22,18 @@ contract AutographDataTest is Test {
     AutographOpenAction public autographOpenAction;
     PrintAccessControl public printAccessControl;
     AutographNFT public autographNFT;
+    TestERC20 public mona;
+    TestERC20 public usdt;
+    TestERC20 public eth;
+    TestERC20 public matic;
 
     address public owner = address(1);
     address public nonAdmin = address(2);
-    address public mona = address(4);
-    address public usdt = address(5);
-    address public eth = address(6);
-    address public matic = address(7);
     address public designer = address(8);
     address public hub = address(9);
     address public moduleGlobals = address(10);
     address public secondDesigner = address(11);
+    address public buyer = address(12);
 
     bytes32 constant ADDRESS_NOT_VERIFIED_ERROR =
         keccak256("AddressNotVerified()");
@@ -57,7 +60,6 @@ contract AutographDataTest is Test {
             address(autographCollection),
             address(autographMarket)
         );
-
         autographOpenAction = new AutographOpenAction(
             "metadata",
             hub,
@@ -66,6 +68,10 @@ contract AutographDataTest is Test {
             address(accessControl),
             address(autographMarket)
         );
+        eth = new TestERC20();
+        mona = new TestERC20();
+        usdt = new TestERC20();
+        matic = new TestERC20();
 
         autographCollection.setAutographData(address(autographData));
         autographCollection.setAutographMarket(address(autographMarket));
@@ -73,14 +79,14 @@ contract AutographDataTest is Test {
         autographMarket.setAutographData(address(autographData));
         autographNFT.setAutographData(address(autographData));
         autographNFT.setAutographMarketAddress(address(autographMarket));
-        printSplitsData.addCurrency(matic, 1000000000000000000);
-        printSplitsData.addCurrency(mona, 1000000000000000000);
-        printSplitsData.addCurrency(eth, 1000000000000000000);
-        printSplitsData.addCurrency(usdt, 1000000);
-        printSplitsData.setOraclePriceUSD(matic, 772200000000000000);
-        printSplitsData.setOraclePriceUSD(mona, 411150300000000000000);
-        printSplitsData.setOraclePriceUSD(eth, 2077490000000000000000);
-        printSplitsData.setOraclePriceUSD(usdt, 1000000000000000000);
+        printSplitsData.addCurrency(address(matic), 1000000000000000000);
+        printSplitsData.addCurrency(address(mona), 1000000000000000000);
+        printSplitsData.addCurrency(address(eth), 1000000000000000000);
+        printSplitsData.addCurrency(address(usdt), 1000000);
+        printSplitsData.setOraclePriceUSD(address(matic), 772200000000000000);
+        printSplitsData.setOraclePriceUSD(address(mona), 411150300000000000000);
+        printSplitsData.setOraclePriceUSD(address(eth), 2077490000000000000000);
+        printSplitsData.setOraclePriceUSD(address(usdt), 1000000000000000000);
 
         vm.prank(address(this));
         accessControl.addAdmin(owner);
@@ -100,9 +106,9 @@ contract AutographDataTest is Test {
 
     function testCreateAutograph() public {
         address[] memory acceptedTokens = new address[](3);
-        acceptedTokens[0] = eth;
-        acceptedTokens[1] = usdt;
-        acceptedTokens[2] = matic;
+        acceptedTokens[0] = address(eth);
+        acceptedTokens[1] = address(usdt);
+        acceptedTokens[2] = address(matic);
         string[] memory pages = new string[](4);
         pages[0] = "page1uri";
         pages[1] = "page2uri";
@@ -180,18 +186,18 @@ contract AutographDataTest is Test {
 
         address[][] memory acceptedTokens = new address[][](4);
         acceptedTokens[0] = new address[](3);
-        acceptedTokens[0][0] = mona;
-        acceptedTokens[0][1] = eth;
-        acceptedTokens[0][2] = usdt;
+        acceptedTokens[0][0] = address(mona);
+        acceptedTokens[0][1] = address(eth);
+        acceptedTokens[0][2] = address(usdt);
         acceptedTokens[1] = new address[](2);
-        acceptedTokens[1][0] = mona;
-        acceptedTokens[1][1] = usdt;
+        acceptedTokens[1][0] = address(mona);
+        acceptedTokens[1][1] = address(usdt);
         acceptedTokens[2] = new address[](1);
-        acceptedTokens[2][0] = matic;
+        acceptedTokens[2][0] = address(matic);
         acceptedTokens[3] = new address[](3);
-        acceptedTokens[3][0] = mona;
-        acceptedTokens[3][1] = eth;
-        acceptedTokens[3][2] = usdt;
+        acceptedTokens[3][0] = address(mona);
+        acceptedTokens[3][1] = address(eth);
+        acceptedTokens[3][2] = address(usdt);
 
         AutographLibrary.CollectionType[]
             memory collectionTypes = new AutographLibrary.CollectionType[](4);
@@ -227,76 +233,73 @@ contract AutographDataTest is Test {
         AutographLibrary.CollectionInit
             memory _params = createInitialGalleryAndCollections();
 
-        uint256 galleryCounter = autographData.getGalleryCounter();
-        uint16[] memory galleries = autographData.getDesignerGalleries(
-            designer
-        );
-        uint256 length = autographData.getGalleryLengthByDesigner(designer);
-        address des = autographData.getCollectionDesignerByGalleryId(1, 1);
-        string memory collectionOneUri = autographData
-            .getCollectionURIByGalleryId(1, 1);
-        string memory collectionTwoUri = autographData
-            .getCollectionURIByGalleryId(2, 1);
-        uint256 collectionCounter = autographData.getCollectionCounter();
         uint16[] memory galleriesExpected = new uint16[](1);
         galleriesExpected[0] = 1;
 
-        assertEq(galleryCounter, 1);
-        assertEq(collectionCounter, 4);
-        assertEq(galleries.length, 1);
+        assertEq(autographData.getGalleryCounter(), 1);
+        assertEq(autographData.getCollectionCounter(), 4);
+        assertEq(autographData.getDesignerGalleries(designer).length, 1);
         assertEq(
-            keccak256(abi.encodePacked((galleries))),
+            keccak256(
+                abi.encodePacked((autographData.getDesignerGalleries(designer)))
+            ),
             keccak256(abi.encodePacked((galleriesExpected)))
         );
-        assertEq(length, 1);
-        assertEq(des, designer);
-        assertEq(collectionOneUri, _params.uris[0]);
-        assertEq(collectionTwoUri, _params.uris[1]);
+        assertEq(autographData.getGalleryLengthByDesigner(designer), 1);
+        assertEq(
+            autographData.getCollectionDesignerByGalleryId(1, 1),
+            designer
+        );
+        assertEq(
+            autographData.getCollectionURIByGalleryId(1, 1),
+            _params.uris[0]
+        );
+        assertEq(
+            autographData.getCollectionURIByGalleryId(2, 1),
+            _params.uris[1]
+        );
     }
 
     function testCreateGalleryTwo() public {
         AutographLibrary.CollectionInit
             memory _params = createInitialGalleryAndCollections();
 
-        uint256 collectionOneAmount = autographData
-            .getCollectionAmountByGalleryId(1, 1);
-        uint256 collectionThreeAmount = autographData
-            .getCollectionAmountByGalleryId(3, 1);
-        uint256 collectionOnePrice = autographData
-            .getCollectionPriceByGalleryId(1, 1);
-        uint256 collectionTwoPrice = autographData
-            .getCollectionPriceByGalleryId(2, 1);
-        address[] memory collectionOneTokens = autographData
-            .getCollectionAcceptedTokensByGalleryId(1, 1);
-        address[] memory collectionTwoTokens = autographData
-            .getCollectionAcceptedTokensByGalleryId(2, 1);
-        bool ethAcceptedCollectionOne = autographData
-            .getAutographCurrencyIsAccepted(eth, 1);
-        bool ethAcceptedCollectionThree = autographData
-            .getAutographCurrencyIsAccepted(eth, 3);
-
-        assertEq(collectionOneAmount, _params.amounts[0]);
-        assertEq(collectionThreeAmount, _params.amounts[2]);
-        assertEq(collectionOnePrice, _params.prices[0]);
-        assertEq(collectionTwoPrice, _params.prices[1]);
-        assertEq(collectionOneTokens, _params.acceptedTokens[0]);
-        assertEq(collectionTwoTokens, _params.acceptedTokens[1]);
-        assertEq(ethAcceptedCollectionOne, true);
-        assertEq(ethAcceptedCollectionThree, false);
+        assertEq(
+            autographData.getCollectionAmountByGalleryId(1, 1),
+            _params.amounts[0]
+        );
+        assertEq(
+            autographData.getCollectionAmountByGalleryId(3, 1),
+            _params.amounts[2]
+        );
+        assertEq(
+            autographData.getCollectionPriceByGalleryId(1, 1),
+            _params.prices[0]
+        );
+        assertEq(
+            autographData.getCollectionPriceByGalleryId(2, 1),
+            _params.prices[1]
+        );
+        assertEq(
+            autographData.getCollectionAcceptedTokensByGalleryId(1, 1),
+            _params.acceptedTokens[0]
+        );
+        assertEq(
+            autographData.getCollectionAcceptedTokensByGalleryId(2, 1),
+            _params.acceptedTokens[1]
+        );
+        assertEq(
+            autographData.getAutographCurrencyIsAccepted(address(eth), 1),
+            true
+        );
+        assertEq(
+            autographData.getAutographCurrencyIsAccepted(address(eth), 3),
+            false
+        );
     }
 
     function testCreateGalleryThree() public {
         createInitialGalleryAndCollections();
-        uint256[] memory minted = autographData.getMintedTokenIdsByGalleryId(
-            1,
-            1
-        );
-        uint256 collectionCount = autographData.getGalleryCollectionCount(1);
-        uint256[] memory colls = autographData.getGalleryCollections(1);
-        uint16 collectionOneGallery = autographData.getCollectionGallery(1);
-        uint16 collectionThreeGallery = autographData.getCollectionGallery(3);
-        uint256[] memory collsAvailable = autographData
-            .getArtistCollectionsAvailable(designer);
 
         uint256[] memory collsExpected = new uint256[](4);
         collsExpected[0] = 1;
@@ -304,12 +307,15 @@ contract AutographDataTest is Test {
         collsExpected[2] = 3;
         collsExpected[3] = 4;
 
-        assertEq(collectionCount, 4);
-        assertEq(colls, collsExpected);
-        assertEq(collectionOneGallery, 1);
-        assertEq(collectionThreeGallery, 1);
-        assertEq(collsAvailable, collsExpected);
-        assertEq(minted.length, 0);
+        assertEq(autographData.getGalleryCollectionCount(1), 4);
+        assertEq(autographData.getGalleryCollections(1), collsExpected);
+        assertEq(autographData.getCollectionGallery(1), 1);
+        assertEq(autographData.getCollectionGallery(3), 1);
+        assertEq(
+            autographData.getArtistCollectionsAvailable(designer),
+            collsExpected
+        );
+        assertEq(autographData.getMintedTokenIdsByGalleryId(1, 1).length, 0);
     }
 
     function testAddPubProfileCollection() public {
@@ -359,39 +365,20 @@ contract AutographDataTest is Test {
             dataTwo
         );
 
-        uint256 galleryCollectionOne = autographData.getGalleryByPublication(
-            900,
-            450
+        assertEq(autographData.getGalleryByPublication(900, 450), 1);
+        assertEq(autographData.getGalleryByPublication(900, 1543), 1);
+        assertEq(autographData.getCollectionByPublication(900, 450), 1);
+        assertEq(autographData.getCollectionByPublication(900, 1543), 4);
+        assertEq(
+            autographData.getCollectionProfileIdsByGalleryId(1, 1)[0],
+            900
         );
-        uint256 galleryCollectionFour = autographData.getGalleryByPublication(
-            900,
-            1543
+        assertEq(
+            autographData.getCollectionProfileIdsByGalleryId(4, 1)[0],
+            900
         );
-        uint256 collectionOne = autographData.getCollectionByPublication(
-            900,
-            450
-        );
-        uint256 collectionFour = autographData.getCollectionByPublication(
-            900,
-            1543
-        );
-        uint256[] memory collectionOneProfiles = autographData
-            .getCollectionProfileIdsByGalleryId(1, 1);
-        uint256[] memory collectionFourProfiles = autographData
-            .getCollectionProfileIdsByGalleryId(4, 1);
-        uint256[] memory collectionOnePubs = autographData
-            .getCollectionPubIdsByGalleryId(1, 1);
-        uint256[] memory collectionFourPubs = autographData
-            .getCollectionPubIdsByGalleryId(4, 1);
-
-        assertEq(galleryCollectionOne, 1);
-        assertEq(galleryCollectionFour, 1);
-        assertEq(collectionOne, 1);
-        assertEq(collectionFour, 4);
-        assertEq(collectionOneProfiles[0], 900);
-        assertEq(collectionFourProfiles[0], 900);
-        assertEq(collectionOnePubs[0], 450);
-        assertEq(collectionFourPubs[0], 1543);
+        assertEq(autographData.getCollectionPubIdsByGalleryId(1, 1)[0], 450);
+        assertEq(autographData.getCollectionPubIdsByGalleryId(4, 1)[0], 1543);
     }
 
     function testAddAndDeleteCollectionGallery() public {
@@ -437,9 +424,115 @@ contract AutographDataTest is Test {
 
         colls = autographData.getGalleryCollections(1);
         assertEq(colls.length, 0);
+
+        createInitialGalleryAndCollections();
+
+        colls = autographData.getGalleryCollections(2);
+        assertEq(colls.length, 4);
     }
 
-    function testCatalogPurchase() public {}
+    function testCatalogPurchaseOpenAction() public {
+        address[] memory acceptedTokens = new address[](3);
+        acceptedTokens[0] = address(eth);
+        acceptedTokens[1] = address(usdt);
+        acceptedTokens[2] = address(matic);
+        string[] memory pages = new string[](4);
+        pages[0] = "page1uri";
+        pages[1] = "page2uri";
+        pages[2] = "page3uri";
+        pages[3] = "page4uri";
+
+        AutographLibrary.OpenActionParams memory params = AutographLibrary
+            .OpenActionParams({
+                autographType: AutographLibrary.AutographType.Catalog,
+                price: 100000000000000000000,
+                acceptedTokens: acceptedTokens,
+                uri: "mainuri",
+                amount: 500,
+                pages: pages,
+                pageCount: 4,
+                collectionId: 0,
+                galleryId: 0
+            });
+
+        bytes memory data = abi.encode(params);
+
+        vm.prank(hub);
+        autographOpenAction.initializePublicationAction(900, 120, owner, data);
+
+        createInitialGalleryAndCollections();
+
+        Types.ProcessActionParams memory process = Types.ProcessActionParams({
+            actorProfileOwner: buyer,
+            actorProfileId: 43,
+            actionModuleData: abi.encode(
+                "encryptedForCatalog",
+                address(eth),
+                2,
+                AutographLibrary.AutographType.Catalog
+            ),
+            publicationActedProfileId: 900,
+            publicationActedId: 120,
+            transactionExecutor: buyer,
+            referrerProfileIds: new uint256[](0),
+            referrerPubIds: new uint256[](0),
+            referrerPubTypes: new Types.PublicationType[](0)
+        });
+
+        eth.transfer(buyer, 96270018146898420);
+        vm.startPrank(buyer);
+        eth.approve(address(autographMarket), 96270018146898420);
+
+        vm.startPrank(hub);
+        autographOpenAction.processPublicationAction(process);
+
+        assertEq(autographData.getOrderCounter(), 1);
+        assertEq(autographData.getOrderBuyer(1), buyer);
+        assertEq(
+            keccak256(
+                abi.encodePacked((autographData.getBuyerOrderIds(buyer)))
+            ),
+            keccak256(abi.encodePacked([1]))
+        );
+        assertEq(autographData.getOrderTotal(1), 96270018146898420);
+        assertEq(autographData.getOrderFulfillment(1), "encryptedForCatalog");
+        assertEq(
+            keccak256(abi.encodePacked((autographData.getOrderSubTypes(1)))),
+            keccak256(
+                abi.encodePacked(([AutographLibrary.AutographType.Catalog]))
+            )
+        );
+        assertEq(
+            keccak256(abi.encodePacked((autographData.getOrderAmounts(1)))),
+            keccak256(abi.encodePacked(([2])))
+        );
+        assertEq(
+            keccak256(abi.encodePacked((autographData.getOrderSubTotals(1)))),
+            keccak256(abi.encodePacked(([96270018146898420])))
+        );
+        assertEq(
+            keccak256(abi.encodePacked((autographData.getOrderParentIds(1)))),
+            keccak256(abi.encodePacked(([0])))
+        );
+        assertEq(
+            keccak256(
+                abi.encodePacked((autographData.getOrderCollectionIds(1)))
+            ),
+            keccak256(abi.encodePacked(([0])))
+        );
+        assertEq(
+            keccak256(abi.encodePacked((autographData.getOrderCurrencies(1)))),
+            keccak256(abi.encodePacked(([address(eth)])))
+        );
+        assertEq(
+            keccak256(
+                abi.encodePacked((autographData.getOrderMintedTokens(1)[0]))
+            ),
+            keccak256(abi.encodePacked(([1,2])))
+        );
+    }
+
+    function testCollectionPurchaseOpenAction() public {}
 
     function testCatalogCollectionPurchase() public {}
 
