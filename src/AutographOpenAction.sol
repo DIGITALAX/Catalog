@@ -84,8 +84,8 @@ contract AutographOpenAction is
                     _autographCreator.collectionId,
                     _autographCreator.galleryId
                 ) !=
-                msg.sender &&
-                !autographAccessControl.isNPC(msg.sender)
+                _executor &&
+                !autographAccessControl.isNPC(_executor)
             ) {
                 revert InvalidAddress();
             }

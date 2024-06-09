@@ -30,10 +30,12 @@ contract AutographDataTest is Test {
     address public designer = address(8);
     address public hub = address(9);
     address public moduleGlobals = address(10);
+    address public secondDesigner = address(11);
 
     bytes32 constant ADDRESS_NOT_VERIFIED_ERROR =
         keccak256("AddressNotVerified()");
     bytes32 constant ADDRESS_INVALID_ERROR = keccak256("InvalidAddress()");
+    bytes32 constant GALLERY_DESIGNER_ERROR = keccak256("NotGalleryDesigner()");
 
     function setUp() public {
         accessControl = new AutographAccessControl();
@@ -91,6 +93,9 @@ contract AutographDataTest is Test {
 
         vm.prank(owner);
         accessControl.addDesigner(designer);
+
+        vm.prank(owner);
+        accessControl.addDesigner(secondDesigner);
     }
 
     function testCreateAutograph() public {
@@ -305,316 +310,140 @@ contract AutographDataTest is Test {
         assertEq(collectionThreeGallery, 1);
         assertEq(collsAvailable, collsExpected);
         assertEq(minted.length, 0);
-
-        // añade pub/profile
-        // añade una colección
-        // borra una colección
-        // borra una galeria
     }
 
-    // function testAddCollections() public {
-    //     string[] memory uris = new string[](1);
-    //     uris[0] = "https://example.com";
+    function testAddPubProfileCollection() public {
+        createInitialGalleryAndCollections();
 
-    //     uint256[] memory amounts = new uint256[](1);
-    //     amounts[0] = 1;
+        AutographLibrary.OpenActionParams memory params = AutographLibrary
+            .OpenActionParams({
+                autographType: AutographLibrary.AutographType.Catalog,
+                price: 0,
+                acceptedTokens: new address[](0),
+                uri: "",
+                amount: 0,
+                pages: new string[](0),
+                pageCount: 0,
+                collectionId: 1,
+                galleryId: 1
+            });
 
-    //     uint256[] memory prices = new uint256[](1);
-    //     prices[0] = 1 ether;
+        bytes memory data = abi.encode(params);
+        vm.prank(hub);
+        autographOpenAction.initializePublicationAction(
+            900,
+            450,
+            designer,
+            data
+        );
 
-    //     address[][] memory acceptedTokens = new address[][](1);
-    //     acceptedTokens[0] = new address[](1);
-    //     acceptedTokens[0][0] = address(0);
+        AutographLibrary.OpenActionParams memory paramsTwo = AutographLibrary
+            .OpenActionParams({
+                autographType: AutographLibrary.AutographType.Catalog,
+                price: 0,
+                acceptedTokens: new address[](0),
+                uri: "",
+                amount: 0,
+                pages: new string[](0),
+                pageCount: 0,
+                collectionId: 4,
+                galleryId: 1
+            });
 
-    //     AutographLibrary.CollectionType[]
-    //         memory collectionTypes = new AutographLibrary.CollectionType[](1);
-    //     collectionTypes[0] = AutographLibrary.CollectionType.Print;
+        bytes memory dataTwo = abi.encode(paramsTwo);
+        vm.prank(hub);
+        autographOpenAction.initializePublicationAction(
+            900,
+            1543,
+            designer,
+            dataTwo
+        );
 
-    //     AutographLibrary.CollectionInit memory collectionInit = AutographLibrary
-    //         .CollectionInit({
-    //             uris: uris,
-    //             amounts: amounts,
-    //             prices: prices,
-    //             acceptedTokens: acceptedTokens,
-    //             collectionTypes: collectionTypes
-    //         });
-    //     collectionInit.uris[0] = "http://example.com/collection";
-    //     collectionInit.amounts[0] = 5;
-    //     collectionInit.prices[0] = 0.5 ether;
-    //     collectionInit.acceptedTokens;
-    //     collectionInit.collectionTypes[0] = AutographLibrary
-    //         .CollectionType
-    //         .Print;
+        uint256 galleryCollectionOne = autographData.getGalleryByPublication(
+            900,
+            450
+        );
+        uint256 galleryCollectionFour = autographData.getGalleryByPublication(
+            900,
+            1543
+        );
+        uint256 collectionOne = autographData.getCollectionByPublication(
+            900,
+            450
+        );
+        uint256 collectionFour = autographData.getCollectionByPublication(
+            900,
+            1543
+        );
+        uint256[] memory collectionOneProfiles = autographData
+            .getCollectionProfileIdsByGalleryId(1, 1);
+        uint256[] memory collectionFourProfiles = autographData
+            .getCollectionProfileIdsByGalleryId(4, 1);
+        uint256[] memory collectionOnePubs = autographData
+            .getCollectionPubIdsByGalleryId(1, 1);
+        uint256[] memory collectionFourPubs = autographData
+            .getCollectionPubIdsByGalleryId(4, 1);
 
-    //     vm.prank(address(autographCollection));
-    //     autographData.addCollections(collectionInit, address(4), 1);
+        assertEq(galleryCollectionOne, 1);
+        assertEq(galleryCollectionFour, 1);
+        assertEq(collectionOne, 1);
+        assertEq(collectionFour, 4);
+        assertEq(collectionOneProfiles[0], 900);
+        assertEq(collectionFourProfiles[0], 900);
+        assertEq(collectionOnePubs[0], 450);
+        assertEq(collectionFourPubs[0], 1543);
+    }
 
-    //     uint256[] memory collections = autographData.getGalleryCollections(1);
-    //     assertEq(collections.length, 1);
-    // }
+    function testAddAndDeleteCollectionGallery() public {
+        AutographLibrary.CollectionInit
+            memory _params = createInitialGalleryAndCollections();
 
-    // function testConnectPublication() public {
-    //     uint256 pubId = 1;
-    //     uint256 profileId = 1;
-    //     uint256 collectionId = 1;
-    //     uint16 galleryId = 1;
+        vm.prank(designer);
+        autographCollection.addCollections(_params, 1);
 
-    //     vm.prank(openAction);
-    //     autographData.connectPublication(
-    //         pubId,
-    //         profileId,
-    //         collectionId,
-    //         galleryId
-    //     );
+        uint256[] memory colls = autographData.getGalleryCollections(1);
+        assertEq(colls.length, 8);
 
-    //     assertEq(
-    //         autographData.getCollectionByPublication(profileId, pubId),
-    //         collectionId
-    //     );
-    //     assertEq(
-    //         autographData.getGalleryByPublication(profileId, pubId),
-    //         galleryId
-    //     );
-    // }
+        vm.prank(designer);
+        autographCollection.deleteCollection(3, 1);
 
-    // function testDeleteGallery() public {
-    //     vm.prank(address(autographCollection));
-    //     autographData.deleteGallery(address(4), 1);
+        colls = autographData.getGalleryCollections(1);
+        assertEq(colls.length, 7);
 
-    //     uint256[] memory collections = autographData.getGalleryCollections(1);
-    //     assertEq(collections.length, 0);
-    // }
+        vm.prank(designer);
+        autographCollection.deleteCollection(7, 1);
 
-    // function testDeleteCollection() public {
-    //     string[] memory uris = new string[](1);
-    //     uris[0] = "https://example.com";
+        colls = autographData.getGalleryCollections(1);
+        assertEq(colls.length, 6);
 
-    //     uint256[] memory amounts = new uint256[](1);
-    //     amounts[0] = 1;
+        vm.prank(owner);
+        try autographCollection.addCollections(_params, 1) {
+            fail();
+        } catch (bytes memory lowLevelData) {
+            bytes4 errorSelector = bytes4(lowLevelData);
+            assertEq(errorSelector, bytes4(ADDRESS_NOT_VERIFIED_ERROR));
+        }
 
-    //     uint256[] memory prices = new uint256[](1);
-    //     prices[0] = 1 ether;
+        vm.prank(secondDesigner);
+        try autographCollection.deleteCollection(3, 1) {
+            fail();
+        } catch (bytes memory lowLevelData) {
+            bytes4 errorSelector = bytes4(lowLevelData);
+            assertEq(errorSelector, bytes4(GALLERY_DESIGNER_ERROR));
+        }
 
-    //     address[][] memory acceptedTokens = new address[][](1);
-    //     acceptedTokens[0] = new address[](1);
-    //     acceptedTokens[0][0] = address(0);
+        vm.prank(designer);
+        autographCollection.deleteGallery(1);
 
-    //     AutographLibrary.CollectionType[]
-    //         memory collectionTypes = new AutographLibrary.CollectionType[](1);
-    //     collectionTypes[0] = AutographLibrary.CollectionType.Print;
+        colls = autographData.getGalleryCollections(1);
+        assertEq(colls.length, 0);
+    }
 
-    //     AutographLibrary.CollectionInit memory collectionInit = AutographLibrary
-    //         .CollectionInit({
-    //             uris: uris,
-    //             amounts: amounts,
-    //             prices: prices,
-    //             acceptedTokens: acceptedTokens,
-    //             collectionTypes: collectionTypes
-    //         });
-    //     collectionInit.uris[0] = "http://example.com/collection";
-    //     collectionInit.amounts[0] = 5;
-    //     collectionInit.prices[0] = 0.5 ether;
-    //     collectionInit.acceptedTokens;
-    //     collectionInit.collectionTypes[0] = AutographLibrary
-    //         .CollectionType
-    //         .Print;
+    function testCatalogPurchase() public {}
 
-    //     vm.prank(address(autographCollection));
-    //     autographData.addCollections(collectionInit, address(4), 1);
-    //     vm.prank(address(autographCollection));
+    function testCatalogCollectionPurchase() public {}
 
-    //     autographData.deleteCollection(1, 1);
+    function testMixPurchase() public {}
 
-    //     uint256[] memory collections = autographData.getGalleryCollections(1);
-    //     assertEq(collections.length, 0);
-    // }
-
-    // function testSetMintedTokens() public {
-    //     uint256[] memory tokenIds = new uint256[](1);
-    //     tokenIds[0] = 1;
-    //     uint256[] memory collectionIds = new uint256[](1);
-    //     collectionIds[0] = 1;
-    //     uint16[] memory galleryIds = new uint16[](1);
-    //     galleryIds[0] = 1;
-
-    //     vm.prank(address(autographCollection));
-    //     autographData.setMintedTokens(tokenIds, collectionIds, galleryIds);
-
-    //     uint256[] memory mintedTokenIds = autographData
-    //         .getMintedTokenIdsByGalleryId(collectionIds[0], galleryIds[0]);
-    //     assertEq(mintedTokenIds[0], tokenIds[0]);
-    // }
-
-    // function testSetVig() public {
-    //     vm.prank(owner);
-    //     autographData.setVig(5);
-
-    //     assertEq(autographData.getVig(), 5);
-    // }
-
-    // function testSetHoodieBase() public {
-    //     vm.prank(owner);
-    //     autographData.setHoodieBase(5);
-
-    //     assertEq(autographData.getHoodieBase(), 5);
-    // }
-
-    // function testSetShirtBase() public {
-    //     vm.prank(owner);
-    //     autographData.setShirtBase(5);
-
-    //     assertEq(autographData.getShirtBase(), 5);
-    // }
-
-    // function testGetAutographURI() public {
-    //     assertEq(autographData.getAutographURI(), "");
-    // }
-
-    // function testGetDesignerGalleries() public {
-    //     uint16[] memory galleries = autographData.getDesignerGalleries(
-    //         address(4)
-    //     );
-    //     assertEq(galleries.length, 0);
-    // }
-
-    // // Continue adding tests for all other view functions and modifiers
-
-    // function testGetGalleryLengthByDesigner() public {
-    //     uint256 length = autographData.getGalleryLengthByDesigner(address(4));
-    //     assertEq(length, 0);
-    // }
-
-    // function testGetGalleryEditable() public {
-    //     bool editable = autographData.getGalleryEditable(1);
-    //     assertEq(editable, false);
-    // }
-
-    // function testGetCollectionDesignerByGalleryId() public {
-    //     address designer = autographData.getCollectionDesignerByGalleryId(1, 1);
-    //     assertEq(designer, address(0));
-    // }
-
-    // function testGetCollectionURIByGalleryId() public {
-    //     string memory uri = autographData.getCollectionURIByGalleryId(1, 1);
-    //     assertEq(uri, "");
-    // }
-
-    // function testGetCollectionAmountByGalleryId() public {
-    //     uint256 amount = autographData.getCollectionAmountByGalleryId(1, 1);
-    //     assertEq(amount, 0);
-    // }
-
-    // function testGetCollectionPriceByGalleryId() public {
-    //     uint256 price = autographData.getCollectionPriceByGalleryId(1, 1);
-    //     assertEq(price, 0);
-    // }
-
-    // function testGetCollectionAcceptedTokensByGalleryId() public {
-    //     address[] memory tokens = autographData
-    //         .getCollectionAcceptedTokensByGalleryId(1, 1);
-    //     assertEq(tokens.length, 0);
-    // }
-
-    // function testGetCollectionProfileIdsByGalleryId() public {
-    //     uint256[] memory profileIds = autographData
-    //         .getCollectionProfileIdsByGalleryId(1, 1);
-    //     assertEq(profileIds.length, 0);
-    // }
-
-    // function testGetCollectionPubIdsByGalleryId() public {
-    //     uint256[] memory pubIds = autographData.getCollectionPubIdsByGalleryId(
-    //         1,
-    //         1
-    //     );
-    //     assertEq(pubIds.length, 0);
-    // }
-
-    // function testGetCollectionTypeByGalleryId() public {
-    //     AutographLibrary.CollectionType collectionType = autographData
-    //         .getCollectionTypeByGalleryId(1, 1);
-    //     assertEq(
-    //         uint8(collectionType),
-    //         uint8(AutographLibrary.CollectionType.Print)
-    //     );
-    // }
-
-    // function testGetCollectionByPublication() public {
-    //     uint256 collection = autographData.getCollectionByPublication(1, 1);
-    //     assertEq(collection, 0);
-    // }
-
-    // function testGetGalleryByPublication() public {
-    //     uint16 gallery = autographData.getGalleryByPublication(1, 1);
-    //     assertEq(gallery, 0);
-    // }
-
-    // function testGetMintedTokenIdsByGalleryId() public {
-    //     uint256[] memory mintedTokenIds = autographData
-    //         .getMintedTokenIdsByGalleryId(1, 1);
-    //     assertEq(mintedTokenIds.length, 0);
-    // }
-
-    // function testGetAutographCurrencyIsAccepted() public {
-    //     bool accepted = autographData.getAutographCurrencyIsAccepted(
-    //         address(5),
-    //         1
-    //     );
-    //     assertEq(accepted, false);
-    // }
-
-    // function testGetGalleryCollectionCount() public {
-    //     uint256 count = autographData.getGalleryCollectionCount(1);
-    //     assertEq(count, 0);
-    // }
-
-    // function testGetGalleryCollections() public {
-    //     uint256[] memory collections = autographData.getGalleryCollections(1);
-    //     assertEq(collections.length, 0);
-    // }
-
-    // function testGetCollectionGallery() public {
-    //     uint16 gallery = autographData.getCollectionGallery(1);
-    //     assertEq(gallery, 0);
-    // }
-
-    // function testGetNFTMix() public {
-    //     uint256[] memory nftMix = autographData.getNFTMix();
-    //     assertEq(nftMix.length, 0);
-    // }
-
-    // function testGetArtistCollectionsAvailable() public {
-    //     uint256[] memory collections = autographData
-    //         .getArtistCollectionsAvailable(address(4));
-    //     assertEq(collections.length, 0);
-    // }
-
-    // function testGetCollectionCounter() public {
-    //     uint256 counter = autographData.getCollectionCounter();
-    //     assertEq(counter, 0);
-    // }
-
-    // function testGetGalleryCounter() public {
-    //     uint256 counter = autographData.getGalleryCounter();
-    //     assertEq(counter, 0);
-    // }
-
-    // function testGetAllArtists() public {
-    //     address[] memory artists = autographData.getAllArtists();
-    //     assertEq(artists.length, 0);
-    // }
-
-    // function testGetVig() public {
-    //     uint256 vig = autographData.getVig();
-    //     assertEq(vig, 0);
-    // }
-
-    // function testGetHoodieBase() public {
-    //     uint256 hoodieBase = autographData.getHoodieBase();
-    //     assertEq(hoodieBase, 0);
-    // }
-
-    // function testGetShirtBase() public {
-    //     uint256 shirtBase = autographData.getShirtBase();
-    //     assertEq(shirtBase, 0);
-    // }
+    function testAllPurchase() public {}
 }

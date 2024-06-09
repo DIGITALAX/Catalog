@@ -16,6 +16,7 @@ contract AutographCollection is ERC721Enumerable {
     error AddressNotVerified();
     error NotEditable();
     error InvalidParent();
+    error NotGalleryDesigner();
 
     mapping(uint256 => AutographLibrary.CollectionMap) _collectionMap;
     mapping(uint256 => uint256) private _parentNFT;
@@ -66,6 +67,17 @@ contract AutographCollection is ERC721Enumerable {
     }
 
     function deleteGallery(uint16 _galleryId) public OnlyDesigner {
+        uint256[] memory _collections = autographData.getGalleryCollections(
+            _galleryId
+        );
+
+        if (
+            msg.sender !=
+            autographData.getCollectionDesignerByGalleryId(_collections[0], 1)
+        ) {
+            revert NotGalleryDesigner();
+        }
+
         if (!autographData.getGalleryEditable(_galleryId)) {
             revert NotEditable();
         }
@@ -77,6 +89,17 @@ contract AutographCollection is ERC721Enumerable {
         uint256 _collectionId,
         uint16 _galleryId
     ) public OnlyDesigner {
+        uint256[] memory _collections = autographData.getGalleryCollections(
+            _galleryId
+        );
+
+        if (
+            msg.sender !=
+            autographData.getCollectionDesignerByGalleryId(_collections[0], 1)
+        ) {
+            revert NotGalleryDesigner();
+        }
+
         uint256[] memory _minted = autographData.getMintedTokenIdsByGalleryId(
             _collectionId,
             _galleryId
@@ -91,6 +114,17 @@ contract AutographCollection is ERC721Enumerable {
         AutographLibrary.CollectionInit memory _colls,
         uint16 _galleryId
     ) public OnlyDesigner {
+        uint256[] memory _collections = autographData.getGalleryCollections(
+            _galleryId
+        );
+
+        if (
+            msg.sender !=
+            autographData.getCollectionDesignerByGalleryId(_collections[0], 1)
+        ) {
+            revert NotGalleryDesigner();
+        }
+
         autographData.addCollections(_colls, msg.sender, _galleryId);
     }
 
