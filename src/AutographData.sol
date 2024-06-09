@@ -126,6 +126,7 @@ contract AutographData {
         name = _name;
         _collectionCounter = 0;
         _orderCounter = 0;
+        _galleryCounter = 0;
         autographAccessControl = AutographAccessControl(
             _autographAccessControl
         );
@@ -679,6 +680,68 @@ contract AutographData {
         uint256 _collectionId
     ) public view returns (uint16) {
         return _collectionGallery[_collectionId];
+    }
+
+    function getBuyerOrderIds(
+        address _buyer
+    ) public view returns (uint256[] memory) {
+        return _buyerToOrders[_buyer];
+    }
+
+    function getOrderBuyer(uint256 _orderId) public view returns (address) {
+        return _orders[_orderId].buyer;
+    }
+
+    function getOrderTotal(uint256 _orderId) public view returns (uint256) {
+        return _orders[_orderId].total;
+    }
+
+    function getOrderFulfillment(
+        uint256 _orderId
+    ) public view returns (string memory) {
+        return _orders[_orderId].fulfillment;
+    }
+
+    function getOrderSubTypes(
+        uint256 _orderId
+    ) public view returns (AutographLibrary.AutographType[] memory) {
+        return _orders[_orderId].subOrderTypes;
+    }
+
+    function getOrderAmounts(
+        uint256 _orderId
+    ) public view returns (uint8[] memory) {
+        return _orders[_orderId].amounts;
+    }
+
+    function getOrderSubTotals(
+        uint256 _orderId
+    ) public view returns (uint256[] memory) {
+        return _orders[_orderId].subTotals;
+    }
+
+    function getOrderParentIds(
+        uint256 _orderId
+    ) public view returns (uint256[] memory) {
+        return _orders[_orderId].parentIds;
+    }
+
+    function getOrderCollectionIds(
+        uint256 _orderId
+    ) public view returns (uint256[] memory) {
+        return _orders[_orderId].collectionIds;
+    }
+
+    function getOrderCurrencies(
+        uint256 _orderId
+    ) public view returns (address[] memory) {
+        return _orders[_orderId].currencies;
+    }
+
+    function getOrderMintedTokens(
+        uint256 _orderId
+    ) public view returns (uint256[][] memory) {
+        return _orders[_orderId].mintedTokenIds;
     }
 
     function getNFTMix() public view returns (uint256[] memory) {

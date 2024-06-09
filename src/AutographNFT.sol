@@ -53,6 +53,7 @@ contract AutographNFT is ERC721Enumerable {
         for (uint8 i = 0; i < _amount; i++) {
             _supply++;
             _safeMint(_purchaserAddress, _supply);
+            tokenIds[i]= _supply;
         }
 
         emit BatchTokenMinted(_purchaserAddress, tokenIds);
