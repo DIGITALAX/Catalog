@@ -35,9 +35,9 @@ contract AutographLibrary {
         string uri;
         AutographType autographType;
         uint256 collectionId;
-        uint256 amount;
         uint256 price;
         uint16 galleryId;
+        uint16 amount;
         uint8 pageCount;
     }
 
@@ -46,10 +46,10 @@ contract AutographLibrary {
         address[] acceptedTokens;
         string uri;
         address designer;
-        uint256 amount;
         uint256 price;
         uint256 pubId;
         uint256 profileId;
+        uint16 amount;
         uint8 pageCount;
     }
 
@@ -58,11 +58,11 @@ contract AutographLibrary {
         address[] acceptedTokens;
         string uri;
         address designer;
-        uint256 amount;
         uint256 price;
         uint256 id;
         uint256 pubId;
         uint256 profileId;
+        uint16 amount;
         uint8 pageCount;
     }
 
@@ -70,7 +70,7 @@ contract AutographLibrary {
         address[][] acceptedTokens;
         uint256[] prices;
         string[] uris;
-        uint256[] amounts;
+        uint8[] amounts;
         CollectionType[] collectionTypes;
     }
 
@@ -82,9 +82,9 @@ contract AutographLibrary {
         string uri;
         address designer;
         uint256 price;
-        uint256 amount;
         uint256 galleryId;
         uint256 collectionId;
+        uint8 amount;
         CollectionType collectionType;
     }
 

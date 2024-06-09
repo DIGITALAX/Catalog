@@ -69,6 +69,13 @@ contract AutographData {
         _;
     }
 
+    modifier OnlyDesigner(address _designer) {
+        if (!autographAccessControl.isDesigner(_designer)) {
+            revert InvalidAddress();
+        }
+        _;
+    }
+
     modifier OnlyCollection() {
         if (msg.sender != (autographCollection)) {
             revert InvalidAddress();
@@ -118,6 +125,7 @@ contract AutographData {
         symbol = _symbol;
         name = _name;
         _collectionCounter = 0;
+        _orderCounter = 0;
         autographAccessControl = AutographAccessControl(
             _autographAccessControl
         );
@@ -145,7 +153,7 @@ contract AutographData {
     function createGallery(
         AutographLibrary.CollectionInit memory _colls,
         address _designer
-    ) external OnlyOpenActionOrCollection {
+    ) external OnlyOpenActionOrCollection OnlyDesigner(_designer) {
         _galleryCounter++;
         _designerGallery[_designer].push(_galleryCounter);
         _galleryEditable[_galleryCounter] = true;
@@ -517,7 +525,7 @@ contract AutographData {
         return _autograph.uri;
     }
 
-    function getAutographAmount() public view returns (uint256) {
+    function getAutographAmount() public view returns (uint16) {
         return _autograph.amount;
     }
 
@@ -532,7 +540,7 @@ contract AutographData {
     function getAutographPage(
         uint256 _page
     ) public view returns (string memory) {
-        return _autograph.pages[_page];
+        return _autograph.pages[_page - 1];
     }
 
     function getAutographAcceptedTokens()
@@ -588,7 +596,7 @@ contract AutographData {
     function getCollectionAmountByGalleryId(
         uint256 _collectionId,
         uint16 _galleryId
-    ) public view returns (uint256) {
+    ) public view returns (uint8) {
         return _collections[_galleryId][_collectionId].amount;
     }
 

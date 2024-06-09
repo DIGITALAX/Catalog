@@ -51,8 +51,7 @@ contract AutographCollection is ERC721Enumerable {
     }
 
     function createGallery(
-        AutographLibrary.CollectionInit memory _colls,
-        address _designer
+        AutographLibrary.CollectionInit memory _colls
     ) public OnlyDesigner {
         autographData.createGallery(
             AutographLibrary.CollectionInit({
@@ -62,7 +61,7 @@ contract AutographCollection is ERC721Enumerable {
                 amounts: _colls.amounts,
                 collectionTypes: _colls.collectionTypes
             }),
-            _designer
+            msg.sender
         );
     }
 
