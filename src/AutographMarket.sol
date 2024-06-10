@@ -118,7 +118,6 @@ contract AutographMarket {
         uint256[] memory _subTotals = new uint256[](_collectionIds.length);
         uint256[] memory _parentIds = new uint256[](_collectionIds.length);
         uint256[][] memory _nftIds = new uint256[][](_collectionIds.length);
-
         for (uint256 i = 0; i < _collectionIds.length; i++) {
             if (_types[i] != AutographLibrary.AutographType.Mix) {
                 _total += _processNonMixType(
@@ -238,7 +237,6 @@ contract AutographMarket {
             _subTotals[_params.index] = _value;
             _parentIds[_params.index] = 0;
             _nftIds[_params.index] = _nfts;
-
             _total += _value;
         }
 
@@ -324,19 +322,18 @@ contract AutographMarket {
                 })
             );
 
-        return (
-            _nftIds,
-            _designerFulfillerTransfer(
-                AutographLibrary.Transfer({
-                    buyer: _params.buyer,
-                    fulfiller: _fulfiller,
-                    designer: _designer,
-                    chosenCurrency: _params.chosenCurrency,
-                    designerAmount: _designerAmount,
-                    fulfillerAmount: _fulfillerAmount
-                })
-            )
+        _designerFulfillerTransfer(
+            AutographLibrary.Transfer({
+                buyer: _params.buyer,
+                fulfiller: _fulfiller,
+                designer: _designer,
+                chosenCurrency: _params.chosenCurrency,
+                designerAmount: _designerAmount,
+                fulfillerAmount: _fulfillerAmount
+            })
         );
+
+        return (_nftIds, _designerAmount + _fulfillerAmount);
     }
 
     function _calculateAmount(
@@ -505,20 +502,22 @@ contract AutographMarket {
             }
 
             _fulfillerAmount =
-                _base *
+                (_base *
                 _params.chosenAmount +
-                (_designerAmount * autographData.getVig()) /
-                100;
+                    (((_designerAmount - _base *
+                _params.chosenAmount) * autographData.getVig()) /
+                        100)) ;
 
             _designerAmount = _designerAmount - _fulfillerAmount;
         }
+
 
         return (_designer, _fulfiller, _designerAmount, _fulfillerAmount);
     }
 
     function _designerFulfillerTransfer(
         AutographLibrary.Transfer memory _params
-    ) internal returns (uint256) {
+    ) internal {
         if (_params.fulfiller != address(0) && _params.fulfillerAmount > 0) {
             _params.fulfillerAmount = _calculateAmount(
                 _params.chosenCurrency,
@@ -542,8 +541,6 @@ contract AutographMarket {
                 _params.designerAmount
             );
         }
-
-        return (_params.designerAmount + _params.fulfillerAmount);
     }
 
     function _handleCollectionMix(
@@ -553,6 +550,7 @@ contract AutographMarket {
         address _currency
     ) internal returns (uint256) {
         uint256 _total = 0;
+
         for (uint256 i = 0; i < _selectedCollectionIds.length; i++) {
             if (_selectedCollectionIds[i] > 0 && _galleries[i] > 0) {
                 (
@@ -573,7 +571,7 @@ contract AutographMarket {
                         })
                     );
 
-                _total += _designerFulfillerTransfer(
+                _designerFulfillerTransfer(
                     AutographLibrary.Transfer({
                         buyer: _buyer,
                         fulfiller: _fulfiller,
@@ -583,6 +581,8 @@ contract AutographMarket {
                         fulfillerAmount: _fulfillerAmount
                     })
                 );
+
+                _total += _designerAmount + _fulfillerAmount;
             }
         }
         return _total;
@@ -590,7 +590,7 @@ contract AutographMarket {
 
     function _transferType(
         AutographLibrary.TransferType memory _params
-    ) internal returns (uint256[] memory , address, address, uint256, uint256) {
+    ) internal returns (uint256[] memory, address, address, uint256, uint256) {
         uint256[] memory _nftIds = new uint256[](_params.chosenAmount);
         address _designer = address(0);
         address _fulfiller = address(0);
@@ -633,7 +633,13 @@ contract AutographMarket {
             );
         }
 
-        return (_nftIds, _designer, _fulfiller, _designerAmount, _fulfillerAmount);
+        return (
+            _nftIds,
+            _designer,
+            _fulfiller,
+            _designerAmount,
+            _fulfillerAmount
+        );
     }
 
     function _isAlreadySelected(

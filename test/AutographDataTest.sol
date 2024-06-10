@@ -500,7 +500,7 @@ contract AutographDataTest is Test {
             ),
             keccak256(abi.encodePacked([1]))
         );
-        assertEq(autographData.getOrderTotal(1), 96270018146898420);
+        assertEq(autographData.getOrderTotal(1), 200000000000000000000);
         assertEq(autographData.getOrderFulfillment(1), "encryptedForCatalog");
         assertEq(
             keccak256(abi.encodePacked((autographData.getOrderSubTypes(1)))),
@@ -514,7 +514,7 @@ contract AutographDataTest is Test {
         );
         assertEq(
             keccak256(abi.encodePacked((autographData.getOrderSubTotals(1)))),
-            keccak256(abi.encodePacked(([96270018146898420])))
+            keccak256(abi.encodePacked(([200000000000000000000])))
         );
         assertEq(
             keccak256(abi.encodePacked((autographData.getOrderParentIds(1)))),
@@ -616,7 +616,7 @@ contract AutographDataTest is Test {
             ),
             keccak256(abi.encodePacked([1]))
         );
-        assertEq(autographData.getOrderTotal(1), 259000259000259000259);
+        assertEq(autographData.getOrderTotal(1), 200000000000000000000);
         assertEq(
             autographData.getOrderFulfillment(1),
             "encryptedForCollectionNFT"
@@ -631,7 +631,7 @@ contract AutographDataTest is Test {
         );
         assertEq(
             keccak256(abi.encodePacked((autographData.getOrderSubTotals(1)))),
-            keccak256(abi.encodePacked(([259000259000259000259])))
+            keccak256(abi.encodePacked(([200000000000000000000])))
         );
         assertEq(
             keccak256(abi.encodePacked((autographData.getOrderParentIds(1)))),
@@ -851,9 +851,9 @@ contract AutographDataTest is Test {
 
         assertEq(
             eth.balanceOf(designer),
-            designerBalanceEth + 226234542645211288
+            designerBalanceEth + 228641293098883749
         );
-        assertEq(eth.balanceOf(fulfiller), 62575511795483973);
+        assertEq(eth.balanceOf(fulfiller), 60168761341811512);
         assertEq(
             mona.balanceOf(owner),
             designerBalanceMona + 972880233822035396
@@ -875,7 +875,7 @@ contract AutographDataTest is Test {
         address[] memory currencies = new address[](1);
         currencies[0] = address(usdt);
         uint256[][] memory collectionIds = new uint256[][](1);
-        collectionIds[0] = new uint256[](0);
+        collectionIds[0] = new uint256[](1);
         uint256[] memory maxAmount = new uint256[](1);
         maxAmount[0] = 1000000000000000000000;
         uint8[] memory quantities = new uint8[](1);
@@ -907,7 +907,7 @@ contract AutographDataTest is Test {
             ),
             keccak256(abi.encodePacked([1]))
         );
-        assertEq(autographData.getOrderTotal(1), 600000000);
+        assertEq(autographData.getOrderTotal(1), 600000000000000000000);
         assertEq(autographData.getOrderFulfillment(1), "fulfillment here");
         assertEq(
             keccak256(abi.encodePacked((autographData.getOrderSubTypes(1)))),
@@ -919,7 +919,7 @@ contract AutographDataTest is Test {
         );
         assertEq(
             keccak256(abi.encodePacked((autographData.getOrderSubTotals(1)))),
-            keccak256(abi.encodePacked(([600000000])))
+            keccak256(abi.encodePacked(([600000000000000000000])))
         );
         assertEq(
             keccak256(abi.encodePacked((autographData.getOrderParentIds(1)))),
@@ -944,11 +944,276 @@ contract AutographDataTest is Test {
         assertEq(usdt.balanceOf(buyer), buyerBalanceUsdt - 600000000);
         assertEq(
             usdt.balanceOf(designer),
-            designerBalanceUsdt + (600000000 - 110000000 - 20000000)
+            designerBalanceUsdt + (600000000 - 110000000 - 14500000)
         );
     }
 
-    function testAllPurchase() public {}
+    function testAllPurchase() public {
+        createInitialGalleryAndCollections();
 
-    function moveAndBurnParentAndChild() public {}
+        address[] memory acceptedTokens = new address[](3);
+        acceptedTokens[0] = address(eth);
+        acceptedTokens[1] = address(usdt);
+        acceptedTokens[2] = address(mona);
+        string[] memory pages = new string[](4);
+        pages[0] = "page1uri";
+        pages[1] = "page2uri";
+        pages[2] = "page3uri";
+        pages[3] = "page4uri";
+
+        AutographLibrary.OpenActionParams memory params = AutographLibrary
+            .OpenActionParams({
+                autographType: AutographLibrary.AutographType.Catalog,
+                price: 100000000000000000000,
+                acceptedTokens: acceptedTokens,
+                uri: "mainuri",
+                amount: 500,
+                pages: pages,
+                pageCount: 4,
+                collectionId: 0,
+                galleryId: 0
+            });
+
+        bytes memory data = abi.encode(params);
+
+        vm.prank(hub);
+        autographOpenAction.initializePublicationAction(900, 120, owner, data);
+
+        address[] memory currencies = new address[](6);
+        currencies[0] = address(mona);
+        currencies[1] = address(usdt);
+        currencies[2] = address(eth);
+        currencies[3] = address(mona);
+        currencies[4] = address(eth);
+        currencies[5] = address(usdt);
+        uint256[][] memory collectionIds = new uint256[][](6);
+        collectionIds[0] = new uint256[](1);
+        collectionIds[1] = new uint256[](1);
+        collectionIds[2] = new uint256[](1);
+        collectionIds[2][0] = 2;
+        collectionIds[3] = new uint256[](1);
+        collectionIds[3][0] = 1;
+        collectionIds[4] = new uint256[](1);
+        collectionIds[4][0] = 4;
+        collectionIds[5] = new uint256[](1);
+        uint256[] memory maxAmount = new uint256[](6);
+        maxAmount[0] = 0;
+        maxAmount[1] = 1000000000000000000000;
+        maxAmount[2] = 0;
+        maxAmount[3] = 0;
+        maxAmount[4] = 0;
+        maxAmount[5] = 1000000000000000000000;
+        uint8[] memory quantities = new uint8[](6);
+        quantities[0] = 3;
+        quantities[1] = 1;
+        quantities[2] = 1;
+        quantities[3] = 3;
+        quantities[4] = 4;
+        quantities[5] = 1;
+        AutographLibrary.AutographType[]
+            memory types = new AutographLibrary.AutographType[](6);
+        types[0] = AutographLibrary.AutographType.Catalog;
+        types[1] = AutographLibrary.AutographType.Mix;
+        types[2] = AutographLibrary.AutographType.NFT;
+        types[3] = AutographLibrary.AutographType.Hoodie;
+        types[4] = AutographLibrary.AutographType.Shirt;
+        types[5] = AutographLibrary.AutographType.Mix;
+
+        usdt.transfer(buyer, 1200000000);
+        vm.prank(buyer);
+        usdt.approve(address(autographMarket), 1200000000);
+
+        eth.transfer(buyer, 673890127028288944);
+        vm.prank(buyer);
+        eth.approve(address(autographMarket), 673890127028288944);
+
+        mona.transfer(buyer, 1459320350733053095);
+        vm.prank(buyer);
+        mona.approve(address(autographMarket), 1459320350733053095);
+
+        uint256 designerBalanceUsdt = usdt.balanceOf(designer);
+        uint256 buyerBalanceUsdt = usdt.balanceOf(buyer);
+        uint256 designerBalanceEth = eth.balanceOf(designer);
+        uint256 buyerBalanceEth = eth.balanceOf(buyer);
+        uint256 designerBalanceMona = mona.balanceOf(designer);
+        uint256 buyerBalanceMona = mona.balanceOf(buyer);
+        uint256 ownerBalanceMona = mona.balanceOf(owner);
+
+        vm.prank(buyer);
+        autographMarket.buyTokens(
+            collectionIds,
+            currencies,
+            maxAmount,
+            quantities,
+            types,
+            "fulfillment here"
+        );
+
+        assertEq(autographData.getOrderCounter(), 1);
+        assertEq(autographData.getOrderBuyer(1), buyer);
+        assertEq(
+            keccak256(
+                abi.encodePacked((autographData.getBuyerOrderIds(buyer)))
+            ),
+            keccak256(abi.encodePacked([1]))
+        );
+        assertEq(autographData.getOrderTotal(1), 3180000000000000000000);
+        assertEq(autographData.getOrderFulfillment(1), "fulfillment here");
+        assertEq(
+            keccak256(abi.encodePacked((autographData.getOrderSubTypes(1)))),
+            keccak256(
+                abi.encodePacked(
+                    (
+                        [
+                            AutographLibrary.AutographType.Catalog,
+                            AutographLibrary.AutographType.Mix,
+                            AutographLibrary.AutographType.NFT,
+                            AutographLibrary.AutographType.Hoodie,
+                            AutographLibrary.AutographType.Shirt,
+                            AutographLibrary.AutographType.Mix
+                        ]
+                    )
+                )
+            )
+        );
+
+        assertEq(
+            keccak256(abi.encodePacked((autographData.getOrderAmounts(1)))),
+            keccak256(abi.encodePacked(([3, 1, 1, 3, 4, 1])))
+        );
+        assertEq(
+            keccak256(abi.encodePacked((autographData.getOrderSubTotals(1)))),
+            keccak256(
+                abi.encodePacked(
+                    (
+                        [
+                            300000000000000000000,
+                            600000000000000000000,
+                            180000000000000000000,
+                            300000000000000000000,
+                            1200000000000000000000,
+                            600000000000000000000
+                        ]
+                    )
+                )
+            )
+        );
+        assertEq(
+            keccak256(abi.encodePacked((autographData.getOrderParentIds(1)))),
+            keccak256(abi.encodePacked(([0, 1, 0, 0, 0, 13])))
+        );
+        assertEq(
+            keccak256(
+                abi.encodePacked((autographData.getOrderCollectionIds(1)[0]))
+            ),
+            keccak256(abi.encodePacked(([0])))
+        );
+        assertEq(
+            keccak256(
+                abi.encodePacked((autographData.getOrderCollectionIds(1)[1]))
+            ),
+            keccak256(abi.encodePacked(([3, 4, 1])))
+        );
+        assertEq(
+            keccak256(
+                abi.encodePacked((autographData.getOrderCollectionIds(1)[2]))
+            ),
+            keccak256(abi.encodePacked(([2])))
+        );
+        assertEq(
+            keccak256(
+                abi.encodePacked((autographData.getOrderCollectionIds(1)[3]))
+            ),
+            keccak256(abi.encodePacked(([1])))
+        );
+        assertEq(
+            keccak256(
+                abi.encodePacked((autographData.getOrderCollectionIds(1)[4]))
+            ),
+            keccak256(abi.encodePacked(([4])))
+        );
+        assertEq(
+            keccak256(
+                abi.encodePacked((autographData.getOrderCollectionIds(1)[5]))
+            ),
+            keccak256(abi.encodePacked(([3, 4, 1])))
+        );
+        assertEq(
+            keccak256(abi.encodePacked((autographData.getOrderCurrencies(1)))),
+            keccak256(
+                abi.encodePacked(
+                    (
+                        [
+                            address(mona),
+                            address(usdt),
+                            address(eth),
+                            address(mona),
+                            address(eth),
+                            address(usdt)
+                        ]
+                    )
+                )
+            )
+        );
+        assertEq(
+            keccak256(
+                abi.encodePacked((autographData.getOrderMintedTokens(1)[0]))
+            ),
+            keccak256(abi.encodePacked(([1, 2, 3])))
+        );
+        assertEq(
+            keccak256(
+                abi.encodePacked((autographData.getOrderMintedTokens(1)[1]))
+            ),
+            keccak256(abi.encodePacked(([2, 3, 4])))
+        );
+        assertEq(
+            keccak256(
+                abi.encodePacked((autographData.getOrderMintedTokens(1)[2]))
+            ),
+            keccak256(abi.encodePacked(([5])))
+        );
+        assertEq(
+            keccak256(
+                abi.encodePacked((autographData.getOrderMintedTokens(1)[3]))
+            ),
+            keccak256(abi.encodePacked(([6, 7, 8])))
+        );
+        assertEq(
+            keccak256(
+                abi.encodePacked((autographData.getOrderMintedTokens(1)[4]))
+            ),
+            keccak256(abi.encodePacked(([9, 10, 11, 12])))
+        );
+        assertEq(
+            keccak256(
+                abi.encodePacked((autographData.getOrderMintedTokens(1)[5]))
+            ),
+            keccak256(abi.encodePacked(([14, 15, 16])))
+        );
+        assertEq(usdt.balanceOf(buyer), buyerBalanceUsdt - 1200000000);
+        assertEq(
+            usdt.balanceOf(designer),
+            designerBalanceUsdt +
+                (1200000000 - 110000000 - 14500000 - 110000000 - 14500000)
+        );
+        assertEq(mona.balanceOf(buyer), buyerBalanceMona - 1459320350733053094);
+        assertEq(
+            mona.balanceOf(designer),
+            designerBalanceMona + 277270866639280088
+        );
+        assertEq(mona.balanceOf(owner), ownerBalanceMona + 729660175366526547);
+        assertEq(
+            eth.balanceOf(buyer),
+            buyerBalanceEth - 664263125213599101
+        );
+        assertEq(
+            eth.balanceOf(designer),
+            designerBalanceEth + 543925602529976076
+        );
+    }
+
+    function moveAndBurnParentAndChild() public {
+        
+    }
 }
