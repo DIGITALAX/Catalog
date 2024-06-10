@@ -135,22 +135,27 @@ contract AutographCollection is ERC721Enumerable {
         uint8 _amount
     ) external OnlyMarket returns (uint256[] memory) {
         uint256[] memory _tokenIds = new uint256[](_amount);
-        uint256[] memory _collectionIds = new uint256[](1);
-        _collectionIds[0] = _collectionId;
-        uint16[] memory _galleryIds = new uint16[](1);
-        _galleryIds[0] = _galleryId;
+        uint256[] memory _collectionIds = new uint256[](_amount);
+        uint16[] memory _galleryIds = new uint16[](_amount);
 
         for (uint8 i = 0; i < _amount; i++) {
             _supply++;
             _safeMint(_purchaserAddress, _supply);
             _tokenIds[i] = _supply;
+            _galleryIds[i] = _galleryId;
+            _collectionIds[i] = _collectionId;
             _collectionMap[_supply] = AutographLibrary.CollectionMap({
                 collectionId: _collectionId,
                 galleryId: _galleryId
             });
         }
 
-        autographData.setMintedTokens(_tokenIds, _collectionIds, _galleryIds);
+        autographData.setMintedTokens(
+            _tokenIds,
+            _collectionIds,
+            _galleryIds,
+            _amount
+        );
 
         return _tokenIds;
     }
@@ -194,8 +199,7 @@ contract AutographCollection is ERC721Enumerable {
             });
         }
 
-        autographData.setMintedTokens(_childIds, _collections, _galleries);
-
+        autographData.setMintedTokens(_childIds, _collections, _galleries, 1);
         return (_childIds, _parentId);
     }
 
