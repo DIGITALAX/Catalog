@@ -1207,13 +1207,13 @@ contract AutographDataTest is Test {
             eth.balanceOf(buyer),
             buyerBalanceEth - 664263125213599101
         );
-        assertEq(
+        assertEq( 
             eth.balanceOf(designer),
             designerBalanceEth + 543925602529976076
         );
     }
 
     function moveAndBurnParentAndChild() public {
-        
+
     }
 }
