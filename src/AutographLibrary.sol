@@ -104,14 +104,44 @@ contract AutographLibrary {
     }
 
     struct NonMixParams {
-        uint256[][] nftIds;
         address[] currencies;
         uint256[] collectionIds;
         uint8[] quantities;
         AutographType[] types;
-        uint256[] subTotals;
-        uint256[] parentIds;
         address buyer;
         uint256 index;
+    }
+
+    struct Transfer {
+        address buyer;
+        address fulfiller;
+        address designer;
+        address chosenCurrency;
+        uint256 designerAmount;
+        uint256 fulfillerAmount;
+    }
+
+    struct Split {
+        uint256 collectionId;
+        uint16 galleryId;
+        uint8 chosenAmount;
+        AutographLibrary.AutographType autographType;
+    }
+
+    struct TransferType {
+        address buyer;
+        uint256 collectionId;
+        uint16 galleryId;
+        uint8 chosenAmount;
+        AutographLibrary.AutographType autographType;
+    }
+
+    struct NonMixTransfer {
+        address chosenCurrency;
+        address buyer;
+        uint256 collectionId;
+        uint8 chosenAmount;
+        uint16 galleryId;
+        AutographLibrary.AutographType autographType;
     }
 }

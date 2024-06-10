@@ -860,6 +860,13 @@ contract AutographDataTest is Test {
         );
         assertEq(eth.balanceOf(buyer), buyerBalanceEth - 288810054440695261);
         assertEq(mona.balanceOf(buyer), buyerBalanceMona - 972880233822035396);
+        assertEq(autographData.getAutographMinted(), 4);
+        assertEq(
+            keccak256(
+                abi.encodePacked((autographData.getOrderCollectionIds(1)[1]))
+            ),
+            keccak256(abi.encodePacked(([4])))
+        );
     }
 
     function testMixPurchase() public {
@@ -877,13 +884,11 @@ contract AutographDataTest is Test {
             memory types = new AutographLibrary.AutographType[](1);
         types[0] = AutographLibrary.AutographType.Mix;
 
-        uint256 designerBalanceUsdt = usdt.balanceOf(designer);
-        uint256 buyerBalanceUsdt = usdt.balanceOf(buyer);
-
         usdt.transfer(buyer, 1000000000000000000000);
         vm.prank(buyer);
         usdt.approve(address(autographMarket), 1000000000000000000000);
-
+        uint256 designerBalanceUsdt = usdt.balanceOf(designer);
+        uint256 buyerBalanceUsdt = usdt.balanceOf(buyer);
         vm.prank(buyer);
         autographMarket.buyTokens(
             collectionIds,
@@ -924,7 +929,7 @@ contract AutographDataTest is Test {
             keccak256(
                 abi.encodePacked((autographData.getOrderCollectionIds(1)[0]))
             ),
-            keccak256(abi.encodePacked(([3,4,1])))
+            keccak256(abi.encodePacked(([3, 4, 1])))
         );
         assertEq(
             keccak256(abi.encodePacked((autographData.getOrderCurrencies(1)))),
@@ -936,12 +941,14 @@ contract AutographDataTest is Test {
             ),
             keccak256(abi.encodePacked(([2, 3, 4])))
         );
+        assertEq(usdt.balanceOf(buyer), buyerBalanceUsdt - 600000000);
+        assertEq(
+            usdt.balanceOf(designer),
+            designerBalanceUsdt + (600000000 - 110000000 - 20000000)
+        );
     }
 
-    function testAllPurchase() public {
-        // con la mezcla
-        // las bolsas tambien despues
-    }
+    function testAllPurchase() public {}
 
     function moveAndBurnParentAndChild() public {}
 }
