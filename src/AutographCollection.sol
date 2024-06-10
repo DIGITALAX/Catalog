@@ -263,10 +263,11 @@ contract AutographCollection is ERC721Enumerable {
     }
 
     function burn(uint256 _tokenId) public {
+        if (ownerOf(_tokenId) != msg.sender) {
+            revert AddressNotVerified();
+        }
+
         if (_childNFTs[_tokenId].length > 0) {
-            if (ownerOf(_tokenId) != msg.sender) {
-                revert AddressNotVerified();
-            }
             for (uint256 i = 0; i < _childNFTs[_tokenId].length; i++) {
                 uint256 _childId = _childNFTs[_tokenId][i];
                 _burn(_childId);
