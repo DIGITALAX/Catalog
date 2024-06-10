@@ -34,11 +34,13 @@ contract AutographDataTest is Test {
     address public moduleGlobals = address(10);
     address public secondDesigner = address(11);
     address public buyer = address(12);
+    address public fulfiller = address(13);
 
     bytes32 constant ADDRESS_NOT_VERIFIED_ERROR =
         keccak256("AddressNotVerified()");
     bytes32 constant ADDRESS_INVALID_ERROR = keccak256("InvalidAddress()");
     bytes32 constant GALLERY_DESIGNER_ERROR = keccak256("NotGalleryDesigner()");
+    bytes32 constant EXCEED_AMOUNT_ERROR = keccak256("ExceedAmount()");
 
     function setUp() public {
         accessControl = new AutographAccessControl();
@@ -58,7 +60,8 @@ contract AutographDataTest is Test {
             "Autograph Data",
             address(accessControl),
             address(autographCollection),
-            address(autographMarket)
+            address(autographMarket),
+            address(autographNFT)
         );
         autographOpenAction = new AutographOpenAction(
             "metadata",
@@ -73,6 +76,10 @@ contract AutographDataTest is Test {
         usdt = new TestERC20();
         matic = new TestERC20();
 
+        accessControl.setFulfiller(fulfiller);
+        autographData.setShirtBase(50000000000000000000);
+        autographData.setHoodieBase(60000000000000000000);
+        autographData.setVig(5);
         autographCollection.setAutographData(address(autographData));
         autographCollection.setAutographMarket(address(autographMarket));
         autographMarket.setAutographCollection(address(autographCollection));
@@ -182,7 +189,7 @@ contract AutographDataTest is Test {
         prices[0] = 100000000000000000000;
         prices[1] = 180000000000000000000;
         prices[2] = 200000000000000000000;
-        prices[3] = 156900000000000000000;
+        prices[3] = 300000000000000000000;
 
         address[][] memory acceptedTokens = new address[][](4);
         acceptedTokens[0] = new address[](3);
@@ -192,19 +199,20 @@ contract AutographDataTest is Test {
         acceptedTokens[1] = new address[](2);
         acceptedTokens[1][0] = address(mona);
         acceptedTokens[1][1] = address(usdt);
-        acceptedTokens[2] = new address[](1);
+        acceptedTokens[2] = new address[](2);
         acceptedTokens[2][0] = address(matic);
+        acceptedTokens[2][1] = address(usdt);
         acceptedTokens[3] = new address[](3);
         acceptedTokens[3][0] = address(mona);
         acceptedTokens[3][1] = address(eth);
         acceptedTokens[3][2] = address(usdt);
 
-        AutographLibrary.CollectionType[]
-            memory collectionTypes = new AutographLibrary.CollectionType[](4);
-        collectionTypes[0] = AutographLibrary.CollectionType.Print;
-        collectionTypes[1] = AutographLibrary.CollectionType.Digital;
-        collectionTypes[2] = AutographLibrary.CollectionType.Digital;
-        collectionTypes[3] = AutographLibrary.CollectionType.Print;
+        AutographLibrary.AutographType[]
+            memory collectionTypes = new AutographLibrary.AutographType[](4);
+        collectionTypes[0] = AutographLibrary.AutographType.Hoodie;
+        collectionTypes[1] = AutographLibrary.AutographType.NFT;
+        collectionTypes[2] = AutographLibrary.AutographType.NFT;
+        collectionTypes[3] = AutographLibrary.AutographType.Shirt;
 
         AutographLibrary.CollectionInit memory collectionInit = AutographLibrary
             .CollectionInit({
@@ -323,7 +331,7 @@ contract AutographDataTest is Test {
 
         AutographLibrary.OpenActionParams memory params = AutographLibrary
             .OpenActionParams({
-                autographType: AutographLibrary.AutographType.Catalog,
+                autographType: AutographLibrary.AutographType.NFT,
                 price: 0,
                 acceptedTokens: new address[](0),
                 uri: "",
@@ -460,8 +468,6 @@ contract AutographDataTest is Test {
         vm.prank(hub);
         autographOpenAction.initializePublicationAction(900, 120, owner, data);
 
-        createInitialGalleryAndCollections();
-
         Types.ProcessActionParams memory process = Types.ProcessActionParams({
             actorProfileOwner: buyer,
             actorProfileId: 43,
@@ -516,7 +522,7 @@ contract AutographDataTest is Test {
         );
         assertEq(
             keccak256(
-                abi.encodePacked((autographData.getOrderCollectionIds(1)))
+                abi.encodePacked((autographData.getOrderCollectionIds(1)[0]))
             ),
             keccak256(abi.encodePacked(([0])))
         );
@@ -528,15 +534,414 @@ contract AutographDataTest is Test {
             keccak256(
                 abi.encodePacked((autographData.getOrderMintedTokens(1)[0]))
             ),
-            keccak256(abi.encodePacked(([1,2])))
+            keccak256(abi.encodePacked(([1, 2])))
         );
     }
 
-    function testCollectionPurchaseOpenAction() public {}
+    function testCollectionNFTPurchaseOpenAction() public {
+        createInitialGalleryAndCollections();
+        AutographLibrary.OpenActionParams memory params = AutographLibrary
+            .OpenActionParams({
+                autographType: AutographLibrary.AutographType.NFT,
+                price: 0,
+                acceptedTokens: new address[](0),
+                uri: "",
+                amount: 0,
+                pages: new string[](0),
+                pageCount: 0,
+                collectionId: 3,
+                galleryId: 1
+            });
 
-    function testCatalogCollectionPurchase() public {}
+        bytes memory data = abi.encode(params);
 
-    function testMixPurchase() public {}
+        vm.prank(hub);
+        autographOpenAction.initializePublicationAction(
+            900,
+            532,
+            designer,
+            data
+        );
 
-    function testAllPurchase() public {}
+        params = AutographLibrary.OpenActionParams({
+            autographType: AutographLibrary.AutographType.NFT,
+            price: 0,
+            acceptedTokens: new address[](0),
+            uri: "",
+            amount: 0,
+            pages: new string[](0),
+            pageCount: 0,
+            collectionId: 2,
+            galleryId: 1
+        });
+
+        data = abi.encode(params);
+        vm.prank(hub);
+        autographOpenAction.initializePublicationAction(
+            900,
+            600,
+            designer,
+            data
+        );
+
+        matic.transfer(buyer, 259000259000259000259);
+        vm.prank(buyer);
+        matic.approve(address(autographMarket), 259000259000259000259);
+
+        Types.ProcessActionParams memory process = Types.ProcessActionParams({
+            actorProfileOwner: buyer,
+            actorProfileId: 43,
+            actionModuleData: abi.encode(
+                "encryptedForCollectionNFT",
+                address(matic),
+                1,
+                AutographLibrary.AutographType.NFT
+            ),
+            publicationActedProfileId: 900,
+            publicationActedId: 532,
+            transactionExecutor: buyer,
+            referrerProfileIds: new uint256[](0),
+            referrerPubIds: new uint256[](0),
+            referrerPubTypes: new Types.PublicationType[](0)
+        });
+
+        vm.prank(hub);
+        autographOpenAction.processPublicationAction(process);
+
+        assertEq(autographData.getOrderCounter(), 1);
+        assertEq(autographData.getOrderBuyer(1), buyer);
+        assertEq(
+            keccak256(
+                abi.encodePacked((autographData.getBuyerOrderIds(buyer)))
+            ),
+            keccak256(abi.encodePacked([1]))
+        );
+        assertEq(autographData.getOrderTotal(1), 259000259000259000259);
+        assertEq(
+            autographData.getOrderFulfillment(1),
+            "encryptedForCollectionNFT"
+        );
+        assertEq(
+            keccak256(abi.encodePacked((autographData.getOrderSubTypes(1)))),
+            keccak256(abi.encodePacked(([AutographLibrary.AutographType.NFT])))
+        );
+        assertEq(
+            keccak256(abi.encodePacked((autographData.getOrderAmounts(1)))),
+            keccak256(abi.encodePacked(([1])))
+        );
+        assertEq(
+            keccak256(abi.encodePacked((autographData.getOrderSubTotals(1)))),
+            keccak256(abi.encodePacked(([259000259000259000259])))
+        );
+        assertEq(
+            keccak256(abi.encodePacked((autographData.getOrderParentIds(1)))),
+            keccak256(abi.encodePacked(([0])))
+        );
+        assertEq(
+            keccak256(
+                abi.encodePacked((autographData.getOrderCollectionIds(1)[0]))
+            ),
+            keccak256(abi.encodePacked(([3])))
+        );
+        assertEq(
+            keccak256(abi.encodePacked((autographData.getOrderCurrencies(1)))),
+            keccak256(abi.encodePacked(([address(matic)])))
+        );
+        assertEq(
+            keccak256(
+                abi.encodePacked((autographData.getOrderMintedTokens(1)[0]))
+            ),
+            keccak256(abi.encodePacked(([1])))
+        );
+
+        usdt.transfer(buyer, 259000259000259000259);
+        vm.prank(buyer);
+        usdt.approve(address(autographMarket), 259000259000259000259);
+
+        process = Types.ProcessActionParams({
+            actorProfileOwner: buyer,
+            actorProfileId: 43,
+            actionModuleData: abi.encode(
+                "encryptedForCollectionNFT",
+                address(usdt),
+                2,
+                AutographLibrary.AutographType.NFT
+            ),
+            publicationActedProfileId: 900,
+            publicationActedId: 600,
+            transactionExecutor: buyer,
+            referrerProfileIds: new uint256[](0),
+            referrerPubIds: new uint256[](0),
+            referrerPubTypes: new Types.PublicationType[](0)
+        });
+
+        vm.prank(hub);
+        try autographOpenAction.processPublicationAction(process) {
+            fail();
+        } catch (bytes memory lowLevelData) {
+            bytes4 errorSelector = bytes4(lowLevelData);
+            assertEq(errorSelector, bytes4(EXCEED_AMOUNT_ERROR));
+        }
+
+        process = Types.ProcessActionParams({
+            actorProfileOwner: buyer,
+            actorProfileId: 43,
+            actionModuleData: abi.encode(
+                "encryptedForCollectionNFT",
+                address(usdt),
+                1,
+                AutographLibrary.AutographType.NFT
+            ),
+            publicationActedProfileId: 900,
+            publicationActedId: 600,
+            transactionExecutor: buyer,
+            referrerProfileIds: new uint256[](0),
+            referrerPubIds: new uint256[](0),
+            referrerPubTypes: new Types.PublicationType[](0)
+        });
+        vm.startPrank(hub);
+        autographOpenAction.processPublicationAction(process);
+
+        assertEq(
+            keccak256(
+                abi.encodePacked(
+                    (autographData.getArtistCollectionsAvailable(designer))
+                )
+            ),
+            keccak256(abi.encodePacked(([1, 4, 3])))
+        );
+
+        try autographOpenAction.processPublicationAction(process) {
+            fail();
+        } catch (bytes memory lowLevelData) {
+            bytes4 errorSelector = bytes4(lowLevelData);
+            assertEq(errorSelector, bytes4(EXCEED_AMOUNT_ERROR));
+        }
+    }
+
+    function testCollectionPrintPurchaseOpenAction() public {
+        createInitialGalleryAndCollections();
+
+        usdt.transfer(buyer, 259000259000259000259);
+        vm.prank(buyer);
+        usdt.approve(address(autographMarket), 259000259000259000259);
+
+        AutographLibrary.OpenActionParams memory params = AutographLibrary
+            .OpenActionParams({
+                autographType: AutographLibrary.AutographType.Hoodie,
+                price: 0,
+                acceptedTokens: new address[](0),
+                uri: "",
+                amount: 0,
+                pages: new string[](0),
+                pageCount: 0,
+                collectionId: 1,
+                galleryId: 1
+            });
+
+        bytes memory data = abi.encode(params);
+        vm.prank(hub);
+        autographOpenAction.initializePublicationAction(
+            900,
+            123333,
+            designer,
+            data
+        );
+
+        Types.ProcessActionParams memory process = Types.ProcessActionParams({
+            actorProfileOwner: buyer,
+            actorProfileId: 103,
+            actionModuleData: abi.encode(
+                "encryptedForCollectionHoodie",
+                address(usdt),
+                1,
+                AutographLibrary.AutographType.Hoodie
+            ),
+            publicationActedProfileId: 900,
+            publicationActedId: 123333,
+            transactionExecutor: buyer,
+            referrerProfileIds: new uint256[](0),
+            referrerPubIds: new uint256[](0),
+            referrerPubTypes: new Types.PublicationType[](0)
+        });
+        vm.startPrank(hub);
+        autographOpenAction.processPublicationAction(process);
+
+        assertEq(
+            keccak256(
+                abi.encodePacked(
+                    (autographData.getArtistCollectionsAvailable(designer))
+                )
+            ),
+            keccak256(abi.encodePacked(([1, 2, 3, 4])))
+        );
+    }
+
+    function testCatalogCollectionPurchase() public {
+        createInitialGalleryAndCollections();
+
+        address[] memory acceptedTokens = new address[](3);
+        acceptedTokens[0] = address(eth);
+        acceptedTokens[1] = address(usdt);
+        acceptedTokens[2] = address(mona);
+        string[] memory pages = new string[](4);
+        pages[0] = "page1uri";
+        pages[1] = "page2uri";
+        pages[2] = "page3uri";
+        pages[3] = "page4uri";
+
+        AutographLibrary.OpenActionParams memory params = AutographLibrary
+            .OpenActionParams({
+                autographType: AutographLibrary.AutographType.Catalog,
+                price: 100000000000000000000,
+                acceptedTokens: acceptedTokens,
+                uri: "mainuri",
+                amount: 500,
+                pages: pages,
+                pageCount: 4,
+                collectionId: 0,
+                galleryId: 0
+            });
+
+        bytes memory data = abi.encode(params);
+
+        vm.prank(hub);
+        autographOpenAction.initializePublicationAction(900, 120, owner, data);
+
+        eth.transfer(buyer, 298810054000000000);
+        vm.prank(buyer);
+        eth.approve(address(autographMarket), 298810054000000000);
+
+        mona.transfer(buyer, 972880234000000000);
+        vm.prank(buyer);
+        mona.approve(address(autographMarket), 972880234000000000);
+
+        address[] memory currencies = new address[](2);
+        currencies[0] = address(mona);
+        currencies[1] = address(eth);
+        uint256[][] memory collectionIds = new uint256[][](2);
+        collectionIds[0] = new uint256[](1);
+        collectionIds[0][0] = 0;
+        collectionIds[1] = new uint256[](1);
+        collectionIds[1][0] = 4;
+
+        uint256[] memory maxAmount = new uint256[](2);
+        maxAmount[0] = 0;
+        maxAmount[1] = 0;
+        uint8[] memory quantities = new uint8[](2);
+        quantities[0] = 4;
+        quantities[1] = 2;
+        AutographLibrary.AutographType[]
+            memory types = new AutographLibrary.AutographType[](2);
+        types[0] = AutographLibrary.AutographType.Catalog;
+        types[1] = AutographLibrary.AutographType.Shirt;
+        uint256 designerBalanceEth = eth.balanceOf(designer);
+        uint256 buyerBalanceEth = eth.balanceOf(buyer);
+        uint256 designerBalanceMona = mona.balanceOf(owner);
+        uint256 buyerBalanceMona = mona.balanceOf(buyer);
+        vm.prank(buyer);
+        autographMarket.buyTokens(
+            collectionIds,
+            currencies,
+            maxAmount,
+            quantities,
+            types,
+            "fulfillment here"
+        );
+
+        assertEq(
+            eth.balanceOf(designer),
+            designerBalanceEth + 226234542645211288
+        );
+        assertEq(eth.balanceOf(fulfiller), 62575511795483973);
+        assertEq(
+            mona.balanceOf(owner),
+            designerBalanceMona + 972880233822035396
+        );
+        assertEq(eth.balanceOf(buyer), buyerBalanceEth - 288810054440695261);
+        assertEq(mona.balanceOf(buyer), buyerBalanceMona - 972880233822035396);
+    }
+
+    function testMixPurchase() public {
+        createInitialGalleryAndCollections();
+
+        address[] memory currencies = new address[](1);
+        currencies[0] = address(usdt);
+        uint256[][] memory collectionIds = new uint256[][](1);
+        collectionIds[0] = new uint256[](0);
+        uint256[] memory maxAmount = new uint256[](1);
+        maxAmount[0] = 1000000000000000000000;
+        uint8[] memory quantities = new uint8[](1);
+        quantities[0] = 1;
+        AutographLibrary.AutographType[]
+            memory types = new AutographLibrary.AutographType[](1);
+        types[0] = AutographLibrary.AutographType.Mix;
+
+        uint256 designerBalanceUsdt = usdt.balanceOf(designer);
+        uint256 buyerBalanceUsdt = usdt.balanceOf(buyer);
+
+        usdt.transfer(buyer, 1000000000000000000000);
+        vm.prank(buyer);
+        usdt.approve(address(autographMarket), 1000000000000000000000);
+
+        vm.prank(buyer);
+        autographMarket.buyTokens(
+            collectionIds,
+            currencies,
+            maxAmount,
+            quantities,
+            types,
+            "fulfillment here"
+        );
+
+        assertEq(autographData.getOrderCounter(), 1);
+        assertEq(autographData.getOrderBuyer(1), buyer);
+        assertEq(
+            keccak256(
+                abi.encodePacked((autographData.getBuyerOrderIds(buyer)))
+            ),
+            keccak256(abi.encodePacked([1]))
+        );
+        assertEq(autographData.getOrderTotal(1), 600000000);
+        assertEq(autographData.getOrderFulfillment(1), "fulfillment here");
+        assertEq(
+            keccak256(abi.encodePacked((autographData.getOrderSubTypes(1)))),
+            keccak256(abi.encodePacked(([AutographLibrary.AutographType.Mix])))
+        );
+        assertEq(
+            keccak256(abi.encodePacked((autographData.getOrderAmounts(1)))),
+            keccak256(abi.encodePacked(([1])))
+        );
+        assertEq(
+            keccak256(abi.encodePacked((autographData.getOrderSubTotals(1)))),
+            keccak256(abi.encodePacked(([600000000])))
+        );
+        assertEq(
+            keccak256(abi.encodePacked((autographData.getOrderParentIds(1)))),
+            keccak256(abi.encodePacked(([1])))
+        );
+        assertEq(
+            keccak256(
+                abi.encodePacked((autographData.getOrderCollectionIds(1)[0]))
+            ),
+            keccak256(abi.encodePacked(([3,4,1])))
+        );
+        assertEq(
+            keccak256(abi.encodePacked((autographData.getOrderCurrencies(1)))),
+            keccak256(abi.encodePacked(([address(usdt)])))
+        );
+        assertEq(
+            keccak256(
+                abi.encodePacked((autographData.getOrderMintedTokens(1)[0]))
+            ),
+            keccak256(abi.encodePacked(([2, 3, 4])))
+        );
+    }
+
+    function testAllPurchase() public {
+        // con la mezcla
+        // las bolsas tambien despues
+    }
+
+    function moveAndBurnParentAndChild() public {}
 }

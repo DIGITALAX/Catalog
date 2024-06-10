@@ -4,16 +4,11 @@ pragma solidity ^0.8.26;
 
 contract AutographLibrary {
     enum AutographType {
-        CollectionNFT,
-        CollectionHoodie,
-        CollectionShirt,
+        NFT,
+        Hoodie,
+        Shirt,
         Catalog,
         Mix
-    }
-
-    enum CollectionType {
-        Print,
-        Digital
     }
 
     enum LensType {
@@ -63,6 +58,7 @@ contract AutographLibrary {
         uint256 pubId;
         uint256 profileId;
         uint16 amount;
+        uint16 minted;
         uint8 pageCount;
     }
 
@@ -71,7 +67,7 @@ contract AutographLibrary {
         uint256[] prices;
         string[] uris;
         uint8[] amounts;
-        CollectionType[] collectionTypes;
+        AutographType[] collectionTypes;
     }
 
     struct Collection {
@@ -85,7 +81,7 @@ contract AutographLibrary {
         uint256 galleryId;
         uint256 collectionId;
         uint8 amount;
-        CollectionType collectionType;
+        AutographType collectionType;
     }
 
     struct CollectionMap {
@@ -95,8 +91,8 @@ contract AutographLibrary {
 
     struct Order {
         uint256[][] mintedTokenIds;
+        uint256[][] collectionIds;
         address[] currencies;
-        uint256[] collectionIds;
         uint256[] parentIds;
         uint256[] subTotals;
         uint8[] amounts;

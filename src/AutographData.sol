@@ -14,6 +14,7 @@ contract AutographData {
     string public symbol;
     string public name;
     address public autographMarket;
+    address public autographNFT;
     address public autographCollection;
     uint256 private _collectionCounter;
     uint256 private _orderCounter;
@@ -54,6 +55,7 @@ contract AutographData {
         uint256 total,
         uint256 orderId
     );
+    event AutographTokensMinted(uint8 amount);
 
     modifier OnlyOpenAction() {
         if (!autographAccessControl.isOpenAction(msg.sender)) {
@@ -84,7 +86,14 @@ contract AutographData {
     }
 
     modifier OnlyMarket() {
-        if (msg.sender != (autographMarket)) {
+        if (msg.sender != autographMarket) {
+            revert InvalidAddress();
+        }
+        _;
+    }
+
+    modifier OnlyNFT() {
+        if (msg.sender != autographNFT) {
             revert InvalidAddress();
         }
         _;
@@ -120,7 +129,8 @@ contract AutographData {
         string memory _name,
         address _autographAccessControl,
         address _autographCollection,
-        address _autographMarket
+        address _autographMarket,
+        address _autographNFT
     ) {
         symbol = _symbol;
         name = _name;
@@ -132,6 +142,7 @@ contract AutographData {
         );
         autographCollection = _autographCollection;
         autographMarket = _autographMarket;
+        autographNFT = _autographNFT;
     }
 
     function createAutograph(
@@ -408,10 +419,17 @@ contract AutographData {
         emit CollectionDeleted(_collectionId, _galleryId);
     }
 
+    function setMintedCatalog(uint8 _amount) external OnlyNFT {
+        _autograph.minted += _amount;
+
+        emit AutographTokensMinted(_amount);
+    }
+
     function setMintedTokens(
         uint256[] memory _tokenIds,
         uint256[] memory _collectionIds,
-        uint16[] memory _galleryIds
+        uint16[] memory _galleryIds,
+        uint8 _amount
     ) external OnlyCollection {
         for (uint8 i = 0; i < _tokenIds.length; i++) {
             _collections[_galleryIds[i]][_collectionIds[i]].mintedTokenIds.push(
@@ -460,7 +478,16 @@ contract AutographData {
                 ) {
                     if (
                         _artistCollectionsAvailable[_designer][k] ==
-                        _collectionIds[i]
+                        _collectionIds[i] &&
+                        _amount +
+                            getMintedTokenIdsByGalleryId(
+                                _collectionIds[i],
+                                _galleryIds[i]
+                            ).length >=
+                        getCollectionAmountByGalleryId(
+                            _collectionIds[i],
+                            _galleryIds[i]
+                        )
                     ) {
                         _artistCollectionsAvailable[_designer][
                             k
@@ -479,8 +506,8 @@ contract AutographData {
 
     function createOrder(
         uint256[][] memory _mintedTokenIds,
+        uint256[][] memory _collectionIds,
         address[] memory _currencies,
-        uint256[] memory _collectionIds,
         uint8[] memory _amounts,
         uint256[] memory _parentIds,
         uint256[] memory _subTotals,
@@ -564,6 +591,10 @@ contract AutographData {
         return _autograph.designer;
     }
 
+    function getAutographMinted() public view returns (uint16) {
+        return _autograph.minted;
+    }
+
     function getDesignerGalleries(
         address _designer
     ) public view returns (uint16[] memory) {
@@ -632,7 +663,7 @@ contract AutographData {
     function getCollectionTypeByGalleryId(
         uint256 _collectionId,
         uint16 _galleryId
-    ) public view returns (AutographLibrary.CollectionType) {
+    ) public view returns (AutographLibrary.AutographType) {
         return _collections[_galleryId][_collectionId].collectionType;
     }
 
@@ -728,7 +759,7 @@ contract AutographData {
 
     function getOrderCollectionIds(
         uint256 _orderId
-    ) public view returns (uint256[] memory) {
+    ) public view returns (uint256[][] memory) {
         return _orders[_orderId].collectionIds;
     }
 
