@@ -869,7 +869,7 @@ contract AutographDataTest is Test {
         );
     }
 
-    function testMixPurchase() public {
+    function testMixPurchase() public returns (uint256[] memory, uint256) {
         createInitialGalleryAndCollections();
 
         address[] memory currencies = new address[](1);
@@ -945,6 +945,11 @@ contract AutographDataTest is Test {
         assertEq(
             usdt.balanceOf(designer),
             designerBalanceUsdt + (600000000 - 110000000 - 14500000)
+        );
+
+        return (
+            autographData.getOrderCollectionIds(1)[0],
+            autographData.getOrderParentIds(1)[0]
         );
     }
 
@@ -1203,17 +1208,83 @@ contract AutographDataTest is Test {
             designerBalanceMona + 277270866639280088
         );
         assertEq(mona.balanceOf(owner), ownerBalanceMona + 729660175366526547);
+        assertEq(eth.balanceOf(buyer), buyerBalanceEth - 664263125213599101);
         assertEq(
-            eth.balanceOf(buyer),
-            buyerBalanceEth - 664263125213599101
-        );
-        assertEq( 
             eth.balanceOf(designer),
             designerBalanceEth + 543925602529976076
         );
     }
 
-    function moveAndBurnParentAndChild() public {
+    function testTransferParentWithChildren() public {
+        (uint256[] memory childIds, uint256 parentId) = testMixPurchase();
+        vm.prank(buyer);
+        autographCollection.transferFrom(buyer, fulfiller, parentId);
 
+        for (uint256 i = 0; i < childIds.length; i++) {
+            assertEq(autographCollection.ownerOf(childIds[i]), fulfiller);
+        }
+        assertEq(autographCollection.ownerOf(parentId), fulfiller);
+    }
+
+    function testBurnParentWithChildren() public {
+        (uint256[] memory childIds, uint256 parentId) = testMixPurchase();
+
+        vm.prank(buyer);
+
+        autographCollection.burn(parentId);
+
+        for (uint256 i = 0; i < childIds.length; i++) {
+            vm.expectRevert(
+                abi.encodeWithSelector(
+                    bytes4(keccak256("ERC721NonexistentToken(uint256)")),
+                    childIds[i]
+                )
+            );
+            autographCollection.ownerOf(childIds[i]);
+        }
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                bytes4(keccak256("ERC721NonexistentToken(uint256)")),
+                parentId
+            )
+        );
+        autographCollection.ownerOf(parentId);
+    }
+
+    function testTransferChildSeparately() public {
+        (uint256[] memory childIds, uint256 parentId) = testMixPurchase();
+
+        vm.prank(buyer);
+        autographCollection.transferChild(buyer, fulfiller, childIds[0]);
+
+        assertEq(autographCollection.ownerOf(childIds[0]), fulfiller);
+        assertEq(autographCollection.ownerOf(parentId), buyer);
+        assertEq(autographCollection.ownerOf(childIds[1]), buyer);
+        assertEq(autographCollection.ownerOf(childIds[2]), buyer);
+    }
+
+    function testBurnChildSeparately() public {
+        (uint256[] memory childIds, uint256 parentId) = testMixPurchase();
+
+        vm.prank(buyer);
+        autographCollection.burnChild(childIds[1]);
+
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                bytes4(keccak256("ERC721NonexistentToken(uint256)")),
+                childIds[1]
+            )
+        );
+        autographCollection.ownerOf(childIds[1]);
+        assertEq(autographCollection.ownerOf(parentId), buyer);
+        assertEq(autographCollection.ownerOf(childIds[0]), buyer);
+        assertEq(autographCollection.ownerOf(childIds[2]), buyer);
+
+        vm.prank(buyer);
+        autographCollection.transferFrom(buyer, fulfiller, parentId);
+
+        assertEq(autographCollection.ownerOf(childIds[0]), fulfiller);
+        assertEq(autographCollection.ownerOf(childIds[2]), fulfiller);
+        assertEq(autographCollection.ownerOf(parentId), fulfiller);
     }
 }
