@@ -111,7 +111,7 @@ contract NPCPublicationTest is Test {
         accessControl.addOpenAction(address(autographOpenAction));
     }
 
-    function testInitialSetup() public {
+    function testInitialSetup() public view {
         assertEq(npcPublication.symbol(), "NPCP");
         assertEq(npcPublication.name(), "NPC Publication");
     }
@@ -255,8 +255,8 @@ contract NPCPublicationTest is Test {
     }
 
     function testGetPublicationPredictByNPC() public {
-        AutographLibrary.CollectionInit
-            memory _params = createInitialGalleryAndCollections();
+        // AutographLibrary.CollectionInit
+        //     memory _params = createInitialGalleryAndCollections();
 
         vm.prank(npc);
         npcPublication.registerPublication(

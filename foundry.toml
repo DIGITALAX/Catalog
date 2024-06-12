@@ -2,8 +2,15 @@
 src = "src"
 out = "out"
 libs = ["lib"]
+rpc_url = "https://polygon-amoy.g.alchemy.com/v2/${ALCHEMY_AMOY_KEY}"
 
-[dependencies]
+[profile.default.env]
+ALCHEMY_AMOY_KEY = "${ALCHEMY_AMOY_KEY}"
+PRIVATE_KEY = "${PRIVATE_KEY}"
+ETHERSCAN_API_KEY = "${ETHERSCAN_API_KEY}"
+
+
+[profile.dependencies]
 openzeppelin-contracts = { git = "https://github.com/OpenZeppelin/openzeppelin-contracts.git" }
 
 
