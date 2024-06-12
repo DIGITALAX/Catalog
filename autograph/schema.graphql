@@ -1,0 +1,85 @@
+type AutographCreated @entity(immutable: true) {
+  id: Bytes!
+  uri: String! # string
+  amount: BigInt! # uint256
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type AutographTokensMinted @entity(immutable: true) {
+  id: Bytes!
+  amount: Int! # uint8
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type CollectionDeleted @entity(immutable: true) {
+  id: Bytes!
+  collectionId: BigInt! # uint256
+  galleryId: Int! # uint16
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type CollectionTokenMinted @entity(immutable: true) {
+  id: Bytes!
+  tokenIds: [BigInt!]! # uint256[]
+  collectionIds: [BigInt!]! # uint256[]
+  galleryIds: [Int!]! # uint16[]
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type GalleryCreated @entity(immutable: true) {
+  id: Bytes!
+  collectionIds: [BigInt!]! # uint256[]
+  designer: Bytes! # address
+  galleryId: Int! # uint16
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type GalleryDeleted @entity(immutable: true) {
+  id: Bytes!
+  designer: Bytes! # address
+  galleryId: Int! # uint16
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type GalleryUpdated @entity(immutable: true) {
+  id: Bytes!
+  collectionIds: [BigInt!]! # uint256[]
+  designer: Bytes! # address
+  galleryId: Int! # uint16
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type OrderCreated @entity(immutable: true) {
+  id: Bytes!
+  subOrderTypes: [Int!]! # uint8[]
+  total: BigInt! # uint256
+  orderId: BigInt! # uint256
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type PublicationConnected @entity(immutable: true) {
+  id: Bytes!
+  pubId: BigInt! # uint256
+  profileId: BigInt! # uint256
+  collectionId: BigInt! # uint256
+  galleryId: Int! # uint16
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}

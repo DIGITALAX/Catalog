@@ -7,6 +7,7 @@ import "./AutographData.sol";
 import "./print/PrintSplitsData.sol";
 import "./AutographNFT.sol";
 import "./AutographCollection.sol";
+import "./AutographLibrary.sol";
 import "forge-std/console.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
