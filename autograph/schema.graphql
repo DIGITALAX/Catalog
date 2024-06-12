@@ -40,6 +40,7 @@ type GalleryCreated @entity(immutable: true) {
   designer: Bytes! # address
   galleryId: Int! # uint16
   blockNumber: BigInt!
+  collections: [Collection!]
   blockTimestamp: BigInt!
   transactionHash: Bytes!
 }
@@ -83,3 +84,31 @@ type PublicationConnected @entity(immutable: true) {
   blockTimestamp: BigInt!
   transactionHash: Bytes!
 }
+
+type CollectionMetadata @entity {
+  id: ID!
+  title: String!
+  description: String!
+  image: String!
+  tipo: String!
+  gallery: String!
+  tags: String
+  npcs: String
+  locales: String
+  instructions: String
+}
+
+type Collection @entity(immutable: false) {
+  id: Bytes!
+  collectionId: BigInt!
+  galleryId: Int!
+  uri: String!
+  price: BigInt
+  amount: Int
+  designer: Bytes!
+  type: Int
+  mintedTokens: [BigInt!]
+  acceptedTokens: [Bytes!]
+  collectionMetadata: CollectionMetadata
+}
+
