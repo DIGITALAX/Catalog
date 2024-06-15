@@ -1,13 +1,20 @@
-type AutographCreated @entity(immutable: true) {
+type AutographCreated @entity(immutable: false) {
   id: Bytes!
   uri: String! # string
   amount: BigInt! # uint256
+  price: BigInt!
+  pageCount: Int!
+  acceptedTokens: [Bytes!]
+  profileId: BigInt!
+  pubId: BigInt!
+  designer: Bytes!
+  mintedTokens: Int
   blockNumber: BigInt!
   blockTimestamp: BigInt!
   transactionHash: Bytes!
 }
 
-type AutographTokensMinted @entity(immutable: true) {
+type AutographTokensMinted @entity(immutable: false) {
   id: Bytes!
   amount: Int! # uint8
   blockNumber: BigInt!
@@ -15,7 +22,7 @@ type AutographTokensMinted @entity(immutable: true) {
   transactionHash: Bytes!
 }
 
-type CollectionDeleted @entity(immutable: true) {
+type CollectionDeleted @entity(immutable: false) {
   id: Bytes!
   collectionId: BigInt! # uint256
   galleryId: Int! # uint16
@@ -24,7 +31,7 @@ type CollectionDeleted @entity(immutable: true) {
   transactionHash: Bytes!
 }
 
-type CollectionTokenMinted @entity(immutable: true) {
+type CollectionTokenMinted @entity(immutable: false) {
   id: Bytes!
   tokenIds: [BigInt!]! # uint256[]
   collectionIds: [BigInt!]! # uint256[]
@@ -34,7 +41,7 @@ type CollectionTokenMinted @entity(immutable: true) {
   transactionHash: Bytes!
 }
 
-type GalleryCreated @entity(immutable: true) {
+type GalleryCreated @entity(immutable: false) {
   id: Bytes!
   collectionIds: [BigInt!]! # uint256[]
   designer: Bytes! # address
@@ -45,7 +52,7 @@ type GalleryCreated @entity(immutable: true) {
   transactionHash: Bytes!
 }
 
-type GalleryDeleted @entity(immutable: true) {
+type GalleryDeleted @entity(immutable: false) {
   id: Bytes!
   designer: Bytes! # address
   galleryId: Int! # uint16
@@ -54,7 +61,7 @@ type GalleryDeleted @entity(immutable: true) {
   transactionHash: Bytes!
 }
 
-type GalleryUpdated @entity(immutable: true) {
+type GalleryUpdated @entity(immutable: false) {
   id: Bytes!
   collectionIds: [BigInt!]! # uint256[]
   designer: Bytes! # address
@@ -64,7 +71,7 @@ type GalleryUpdated @entity(immutable: true) {
   transactionHash: Bytes!
 }
 
-type OrderCreated @entity(immutable: true) {
+type OrderCreated @entity(immutable: false) {
   id: Bytes!
   subOrderTypes: [Int!]! # uint8[]
   total: BigInt! # uint256
@@ -74,7 +81,7 @@ type OrderCreated @entity(immutable: true) {
   transactionHash: Bytes!
 }
 
-type PublicationConnected @entity(immutable: true) {
+type PublicationConnected @entity(immutable: false) {
   id: Bytes!
   pubId: BigInt! # uint256
   profileId: BigInt! # uint256
@@ -111,4 +118,3 @@ type Collection @entity(immutable: false) {
   acceptedTokens: [Bytes!]
   collectionMetadata: CollectionMetadata
 }
-

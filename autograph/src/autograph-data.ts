@@ -38,6 +38,18 @@ export function handleAutographCreated(event: AutographCreatedEvent): void {
   entity.uri = event.params.uri;
   entity.amount = event.params.amount;
 
+  let datos = AutographData.bind(
+    Address.fromString("0x883a24A5315c0E4Ff4451E6E2B760338FDC8faE8")
+  );
+
+  entity.price = datos.getAutographPrice();
+  entity.pageCount = datos.getAutographPageCount();
+  entity.acceptedTokens = datos.getAutographAcceptedTokens() .map<Bytes>((target: Bytes) => target);
+  entity.profileId = datos.getAutographProfileId();
+  entity.pubId = datos.getAutographPubId();
+  entity.designer = datos.getAutographDesigner();
+  entity.mintedTokens = datos.getAutographMinted();
+
   entity.blockNumber = event.block.number;
   entity.blockTimestamp = event.block.timestamp;
   entity.transactionHash = event.transaction.hash;
@@ -71,7 +83,7 @@ export function handleCollectionDeleted(event: CollectionDeletedEvent): void {
   entity.blockTimestamp = event.block.timestamp;
   entity.transactionHash = event.transaction.hash;
 
-  let entityCollection = GalleryCreated.load(
+  let entityCollection = Collection.load(
     Bytes.fromByteArray(ByteArray.fromBigInt(event.params.collectionId))
   );
 
@@ -251,7 +263,11 @@ export function handleGalleryUpdated(event: GalleryUpdatedEvent): void {
       entity.collectionIds
     );
 
-    let colecciones: Bytes[] = [];
+    let colecciones: Bytes[] | null = entityGallery.collections;
+
+    if (colecciones == null) {
+      colecciones = []
+    }
 
     for (let i = 0; i < entity.collectionIds.length; i++) {
       let coleccion = new Collection(
