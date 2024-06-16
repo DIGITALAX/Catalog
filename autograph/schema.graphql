@@ -5,6 +5,7 @@ type AutographCreated @entity(immutable: false) {
   price: BigInt!
   pageCount: Int!
   acceptedTokens: [Bytes!]
+  pages: [String!]
   profileId: BigInt!
   pubId: BigInt!
   designer: Bytes!
@@ -117,4 +118,70 @@ type Collection @entity(immutable: false) {
   mintedTokens: [BigInt!]
   acceptedTokens: [Bytes!]
   collectionMetadata: CollectionMetadata
+}
+type CurrencyAdded @entity(immutable: false) {
+  id: Bytes!
+  currency: Bytes! # address
+  wei: BigInt!
+  rate: BigInt
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type CurrencyRemoved @entity(immutable: false) {
+  id: Bytes!
+  currency: Bytes! # address
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type DesignerSplitSet @entity(immutable: false) {
+  id: Bytes!
+  designer: Bytes! # address
+  printType: BigInt! # uint256
+  split: BigInt! # uint256
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type FulfillerBaseSet @entity(immutable: false) {
+  id: Bytes!
+  fulfiller: Bytes! # address
+  printType: BigInt! # uint256
+  split: BigInt! # uint256
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type FulfillerSplitSet @entity(immutable: false) {
+  id: Bytes!
+  fulfiller: Bytes! # address
+  printType: BigInt! # uint256
+  split: BigInt! # uint256
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type OracleUpdated @entity(immutable: false) {
+  id: Bytes!
+  currency: Bytes! # address
+  rate: BigInt! # uint256
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type TreasurySplitSet @entity(immutable: false) {
+  id: Bytes!
+  treasury: Bytes! # address
+  printType: BigInt! # uint256
+  split: BigInt! # uint256
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
 }
