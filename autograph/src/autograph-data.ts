@@ -44,12 +44,20 @@ export function handleAutographCreated(event: AutographCreatedEvent): void {
 
   entity.price = datos.getAutographPrice();
   entity.pageCount = datos.getAutographPageCount();
-  entity.acceptedTokens = datos.getAutographAcceptedTokens() .map<Bytes>((target: Bytes) => target);
+  entity.acceptedTokens = datos
+    .getAutographAcceptedTokens()
+    .map<Bytes>((target: Bytes) => target);
   entity.profileId = datos.getAutographProfileId();
   entity.pubId = datos.getAutographPubId();
   entity.designer = datos.getAutographDesigner();
   entity.mintedTokens = datos.getAutographMinted();
 
+  let pages: string[] = [];
+  for (let i = 0; i < entity.pageCount - 1; i++) {
+    pages.push(datos.getAutographPage(BigInt.fromI32(i + 1)));
+  }
+
+  entity.pages = pages;
   entity.blockNumber = event.block.number;
   entity.blockTimestamp = event.block.timestamp;
   entity.transactionHash = event.transaction.hash;
@@ -266,7 +274,7 @@ export function handleGalleryUpdated(event: GalleryUpdatedEvent): void {
     let colecciones: Bytes[] | null = entityGallery.collections;
 
     if (colecciones == null) {
-      colecciones = []
+      colecciones = [];
     }
 
     for (let i = 0; i < entity.collectionIds.length; i++) {

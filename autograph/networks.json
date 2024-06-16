@@ -3,6 +3,9 @@
     "AutographData": {
       "address": "0x883a24A5315c0E4Ff4451E6E2B760338FDC8faE8",
       "startBlock": 8194926
+    },
+    "PrintSplits": {
+      "address": "0x8402e22e4712acc9Bb91Fbec752881c4F9f21b1D"
     }
   }
 }

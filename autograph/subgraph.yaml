@@ -48,6 +48,44 @@ dataSources:
         - event: PublicationConnected(uint256,uint256,uint256,uint16)
           handler: handlePublicationConnected
       file: ./src/autograph-data.ts
+  - kind: ethereum
+    name: PrintSplits
+    network: polygon-amoy
+    source:
+      address: "0x8402e22e4712acc9Bb91Fbec752881c4F9f21b1D"
+      abi: PrintSplits
+      startBlock: 8194616
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - CurrencyAdded
+        - CurrencyRemoved
+        - DesignerSplitSet
+        - FulfillerBaseSet
+        - FulfillerSplitSet
+        - OracleUpdated
+        - TreasurySplitSet
+      abis:
+        - name: PrintSplits
+          file: ./abis/PrintSplits.json
+      eventHandlers:
+        - event: CurrencyAdded(indexed address)
+          handler: handleCurrencyAdded
+        - event: CurrencyRemoved(indexed address)
+          handler: handleCurrencyRemoved
+        - event: DesignerSplitSet(address,uint256,uint256)
+          handler: handleDesignerSplitSet
+        - event: FulfillerBaseSet(address,uint256,uint256)
+          handler: handleFulfillerBaseSet
+        - event: FulfillerSplitSet(address,uint256,uint256)
+          handler: handleFulfillerSplitSet
+        - event: OracleUpdated(indexed address,uint256)
+          handler: handleOracleUpdated
+        - event: TreasurySplitSet(address,uint256,uint256)
+          handler: handleTreasurySplitSet
+      file: ./src/print-splits.ts
 templates:
   - name: CollectionMetadata
     kind: file/ipfs
