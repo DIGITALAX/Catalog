@@ -346,6 +346,38 @@ export function handleOrderCreated(event: OrderCreatedEvent): void {
   entity.blockTimestamp = event.block.timestamp;
   entity.transactionHash = event.transaction.hash;
 
+  let datos = AutographData.bind(
+    Address.fromString("0x883a24A5315c0E4Ff4451E6E2B760338FDC8faE8")
+  );
+
+  const colIds = datos.getOrderCollectionIds(entity.orderId);
+
+  for (let i = 0; i < colIds.length; i++) {
+    for (let j = 0; j < colIds[i].length; j++) {
+      let entityCollection = Collection.load(
+        Bytes.fromByteArray(ByteArray.fromBigInt(colIds[i][j]))
+      );
+
+      if (entityCollection) {
+        let mintedTokens = entityCollection.mintedTokens;
+
+        if (mintedTokens == null) {
+          mintedTokens = [];
+        }
+
+        let tokens = datos.getOrderMintedTokens(event.params.orderId);
+
+        for (let k = 0; k < tokens.length; k++) {
+          mintedTokens.push(tokens[i][k]);
+        }
+
+        entityCollection.mintedTokens = mintedTokens;
+
+        entityCollection.save();
+      }
+    }
+  }
+
   entity.save();
 }
 
