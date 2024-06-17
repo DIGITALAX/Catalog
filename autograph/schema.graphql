@@ -118,6 +118,8 @@ type Collection @entity(immutable: false) {
   mintedTokens: [BigInt!]
   acceptedTokens: [Bytes!]
   collectionMetadata: CollectionMetadata
+  pubIds: [BigInt!]
+  profileIds: [BigInt!]
 }
 type CurrencyAdded @entity(immutable: false) {
   id: Bytes!

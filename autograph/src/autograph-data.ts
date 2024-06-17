@@ -364,5 +364,30 @@ export function handlePublicationConnected(
   entity.blockTimestamp = event.block.timestamp;
   entity.transactionHash = event.transaction.hash;
 
+  let entityCollection = Collection.load(
+    Bytes.fromByteArray(ByteArray.fromBigInt(event.params.collectionId))
+  );
+
+  if (entityCollection) {
+    let pubIds: BigInt[] | null = entityCollection.pubIds;
+    let profileIds: BigInt[] | null = entityCollection.profileIds;
+
+    if (pubIds == null) {
+      pubIds = [];
+    }
+
+    if (profileIds == null) {
+      profileIds = [];
+    }
+
+    profileIds.push(entity.profileId);
+    pubIds.push(entity.pubId);
+
+    entityCollection.pubIds = pubIds;
+    entityCollection.profileIds = profileIds;
+
+    entityCollection.save();
+  }
+
   entity.save();
 }
