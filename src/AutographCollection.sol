@@ -95,7 +95,7 @@ contract AutographCollection is ERC721Enumerable {
 
         if (
             msg.sender !=
-            autographData.getCollectionDesignerByGalleryId(_collections[0], 1)
+            autographData.getCollectionDesignerByGalleryId(_collections[0], _galleryId)
         ) {
             revert NotGalleryDesigner();
         }
@@ -120,7 +120,7 @@ contract AutographCollection is ERC721Enumerable {
 
         if (
             msg.sender !=
-            autographData.getCollectionDesignerByGalleryId(_collections[0], 1)
+            autographData.getCollectionDesignerByGalleryId(_collections[0], _galleryId)
         ) {
             revert NotGalleryDesigner();
         }
