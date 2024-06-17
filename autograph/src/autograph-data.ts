@@ -368,7 +368,9 @@ export function handleOrderCreated(event: OrderCreatedEvent): void {
         let tokens = datos.getOrderMintedTokens(event.params.orderId);
 
         for (let k = 0; k < tokens.length; k++) {
-          mintedTokens.push(tokens[i][k]);
+          if (i < tokens.length && k < tokens[i].length) {
+            mintedTokens.push(tokens[i][k]);
+          }
         }
 
         entityCollection.mintedTokens = mintedTokens;
