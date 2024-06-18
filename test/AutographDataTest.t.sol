@@ -2,7 +2,6 @@
 pragma solidity ^0.8.26;
 
 import "forge-std/Test.sol";
-import "forge-std/console.sol";
 import "../src/AutographData.sol";
 import "../src/AutographNFT.sol";
 import "../src/AutographAccessControl.sol";
@@ -927,7 +926,7 @@ contract AutographDataTest is Test {
             keccak256(
                 abi.encodePacked((autographData.getOrderCollectionIds(1)[0]))
             ),
-            keccak256(abi.encodePacked(([3, 4, 1])))
+            keccak256(abi.encodePacked(([1, 3, 4])))
         );
         assertEq(
             keccak256(abi.encodePacked((autographData.getOrderCurrencies(1)))),
@@ -946,7 +945,7 @@ contract AutographDataTest is Test {
         );
 
         return (
-            autographData.getOrderCollectionIds(1)[0],
+            autographData.getOrderMintedTokens(1)[0],
             autographData.getOrderParentIds(1)[0]
         );
     }
@@ -1112,7 +1111,7 @@ contract AutographDataTest is Test {
             keccak256(
                 abi.encodePacked((autographData.getOrderCollectionIds(1)[1]))
             ),
-            keccak256(abi.encodePacked(([3, 4, 1])))
+            keccak256(abi.encodePacked(([1, 3, 4])))
         );
         assertEq(
             keccak256(
@@ -1136,7 +1135,7 @@ contract AutographDataTest is Test {
             keccak256(
                 abi.encodePacked((autographData.getOrderCollectionIds(1)[5]))
             ),
-            keccak256(abi.encodePacked(([3, 4, 1])))
+            keccak256(abi.encodePacked(([1, 3, 4])))
         );
         assertEq(
             keccak256(abi.encodePacked((autographData.getOrderCurrencies(1)))),
