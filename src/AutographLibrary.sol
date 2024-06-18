@@ -104,12 +104,12 @@ contract AutographLibrary {
     }
 
     struct NonMixParams {
-        address[] currencies;
-        uint256[] collectionIds;
-        uint8[] quantities;
-        AutographType[] types;
+        address currency;
         address buyer;
+        uint256 collectionId;
         uint256 index;
+        AutographType autographType;
+        uint8 quantity;
     }
 
     struct Transfer {

@@ -39,7 +39,7 @@ export function handleAutographCreated(event: AutographCreatedEvent): void {
   entity.amount = event.params.amount;
 
   let datos = AutographData.bind(
-    Address.fromString("0x883a24A5315c0E4Ff4451E6E2B760338FDC8faE8")
+    Address.fromString("0x6988e02B2da42b1eB4DAfbD09edb2457AE783dE4")
   );
 
   entity.price = datos.getAutographPrice();
@@ -159,7 +159,7 @@ export function handleGalleryCreated(event: GalleryCreatedEvent): void {
   entity.transactionHash = event.transaction.hash;
 
   let datos = AutographData.bind(
-    Address.fromString("0x883a24A5315c0E4Ff4451E6E2B760338FDC8faE8")
+    Address.fromString("0x6988e02B2da42b1eB4DAfbD09edb2457AE783dE4")
   );
 
   let colecciones: Bytes[] = [];
@@ -168,6 +168,7 @@ export function handleGalleryCreated(event: GalleryCreatedEvent): void {
     let coleccion = new Collection(
       Bytes.fromByteArray(ByteArray.fromBigInt(entity.collectionIds[i]))
     );
+    coleccion.mix = true;
     coleccion.collectionId = entity.collectionIds[i];
     coleccion.acceptedTokens = datos
       .getCollectionAcceptedTokensByGalleryId(
@@ -263,7 +264,7 @@ export function handleGalleryUpdated(event: GalleryUpdatedEvent): void {
   );
 
   let datos = AutographData.bind(
-    Address.fromString("0x883a24A5315c0E4Ff4451E6E2B760338FDC8faE8")
+    Address.fromString("0x6988e02B2da42b1eB4DAfbD09edb2457AE783dE4")
   );
 
   if (entityGallery) {
@@ -283,7 +284,7 @@ export function handleGalleryUpdated(event: GalleryUpdatedEvent): void {
       );
 
       colecciones.push(coleccion.id);
-
+      coleccion.mix = true;
       coleccion.collectionId = entity.collectionIds[i];
       coleccion.acceptedTokens = datos
         .getCollectionAcceptedTokensByGalleryId(
@@ -347,7 +348,7 @@ export function handleOrderCreated(event: OrderCreatedEvent): void {
   entity.transactionHash = event.transaction.hash;
 
   let datos = AutographData.bind(
-    Address.fromString("0x883a24A5315c0E4Ff4451E6E2B760338FDC8faE8")
+    Address.fromString("0x6988e02B2da42b1eB4DAfbD09edb2457AE783dE4")
   );
 
   const colIds = datos.getOrderCollectionIds(entity.orderId);
@@ -371,6 +372,12 @@ export function handleOrderCreated(event: OrderCreatedEvent): void {
           if (i < tokens.length && k < tokens[i].length) {
             mintedTokens.push(tokens[i][k]);
           }
+        }
+
+        if (entityCollection.amount - mintedTokens.length > 2) {
+          entityCollection.mix = true;
+        } else {
+          entityCollection.mix = false;
         }
 
         entityCollection.mintedTokens = mintedTokens;
