@@ -819,11 +819,9 @@ contract AutographDataTest is Test {
         address[] memory currencies = new address[](2);
         currencies[0] = address(mona);
         currencies[1] = address(eth);
-        uint256[][] memory collectionIds = new uint256[][](2);
-        collectionIds[0] = new uint256[](1);
-        collectionIds[0][0] = 0;
-        collectionIds[1] = new uint256[](1);
-        collectionIds[1][0] = 4;
+        uint256[] memory collectionIds = new uint256[](2);
+        collectionIds[0] = 0;
+        collectionIds[1] = 4;
 
         uint256[] memory maxAmount = new uint256[](2);
         maxAmount[0] = 0;
@@ -841,8 +839,8 @@ contract AutographDataTest is Test {
         uint256 buyerBalanceMona = mona.balanceOf(buyer);
         vm.prank(buyer);
         autographMarket.buyTokens(
-            collectionIds,
             currencies,
+            collectionIds,
             maxAmount,
             quantities,
             types,
@@ -874,8 +872,8 @@ contract AutographDataTest is Test {
 
         address[] memory currencies = new address[](1);
         currencies[0] = address(usdt);
-        uint256[][] memory collectionIds = new uint256[][](1);
-        collectionIds[0] = new uint256[](1);
+        uint256[] memory collectionIds = new uint256[](1);
+        collectionIds[0] = 0;
         uint256[] memory maxAmount = new uint256[](1);
         maxAmount[0] = 1000000000000000000000;
         uint8[] memory quantities = new uint8[](1);
@@ -891,8 +889,8 @@ contract AutographDataTest is Test {
         uint256 buyerBalanceUsdt = usdt.balanceOf(buyer);
         vm.prank(buyer);
         autographMarket.buyTokens(
-            collectionIds,
             currencies,
+            collectionIds,
             maxAmount,
             quantities,
             types,
@@ -987,20 +985,17 @@ contract AutographDataTest is Test {
         address[] memory currencies = new address[](6);
         currencies[0] = address(mona);
         currencies[1] = address(usdt);
-        currencies[2] = address(eth);
+        currencies[2] = address(mona);
         currencies[3] = address(mona);
         currencies[4] = address(eth);
         currencies[5] = address(usdt);
-        uint256[][] memory collectionIds = new uint256[][](6);
-        collectionIds[0] = new uint256[](1);
-        collectionIds[1] = new uint256[](1);
-        collectionIds[2] = new uint256[](1);
-        collectionIds[2][0] = 2;
-        collectionIds[3] = new uint256[](1);
-        collectionIds[3][0] = 1;
-        collectionIds[4] = new uint256[](1);
-        collectionIds[4][0] = 4;
-        collectionIds[5] = new uint256[](1);
+        uint256[] memory collectionIds = new uint256[](6);
+        collectionIds[0] = 0;
+        collectionIds[1] = 0;
+        collectionIds[2] = 2;
+        collectionIds[3] = 1;
+        collectionIds[4] = 4;
+        collectionIds[5] = 0;
         uint256[] memory maxAmount = new uint256[](6);
         maxAmount[0] = 0;
         maxAmount[1] = 1000000000000000000000;
@@ -1028,13 +1023,13 @@ contract AutographDataTest is Test {
         vm.prank(buyer);
         usdt.approve(address(autographMarket), 1200000000);
 
-        eth.transfer(buyer, 673890127028288944);
+        eth.transfer(buyer, 577620108881390523);
         vm.prank(buyer);
-        eth.approve(address(autographMarket), 673890127028288944);
+        eth.approve(address(autographMarket), 577620108881390523);
 
-        mona.transfer(buyer, 1459320350733053095);
+        mona.transfer(buyer, 1897116455952969023);
         vm.prank(buyer);
-        mona.approve(address(autographMarket), 1459320350733053095);
+        mona.approve(address(autographMarket), 1897116455952969023);
 
         uint256 designerBalanceUsdt = usdt.balanceOf(designer);
         uint256 buyerBalanceUsdt = usdt.balanceOf(buyer);
@@ -1046,8 +1041,8 @@ contract AutographDataTest is Test {
 
         vm.prank(buyer);
         autographMarket.buyTokens(
-            collectionIds,
             currencies,
+            collectionIds,
             maxAmount,
             quantities,
             types,
@@ -1151,7 +1146,7 @@ contract AutographDataTest is Test {
                         [
                             address(mona),
                             address(usdt),
-                            address(eth),
+                            address(mona),
                             address(mona),
                             address(eth),
                             address(usdt)
@@ -1202,16 +1197,16 @@ contract AutographDataTest is Test {
             designerBalanceUsdt +
                 (1200000000 - 110000000 - 14500000 - 110000000 - 14500000)
         );
-        assertEq(mona.balanceOf(buyer), buyerBalanceMona - 1459320350733053094);
+        assertEq(mona.balanceOf(buyer), buyerBalanceMona - 1897116455952969022);
         assertEq(
             mona.balanceOf(designer),
-            designerBalanceMona + 277270866639280088
+            designerBalanceMona + 277270866639280088 + 437796105219915928
         );
-        assertEq(mona.balanceOf(owner), ownerBalanceMona + 729660175366526547);
-        assertEq(eth.balanceOf(buyer), buyerBalanceEth - 664263125213599101);
+
+        assertEq(eth.balanceOf(buyer), buyerBalanceEth - 577620108881390523);
         assertEq(
             eth.balanceOf(designer),
-            designerBalanceEth + 543925602529976076
+            designerBalanceEth + 457282586197767498
         );
     }
 

@@ -8,7 +8,7 @@ dataSources:
     name: AutographData
     network: polygon-amoy
     source:
-      address: "0x883a24A5315c0E4Ff4451E6E2B760338FDC8faE8"
+      address: "0x6988e02B2da42b1eB4DAfbD09edb2457AE783dE4"
       abi: AutographData
       startBlock: 8194926
     mapping:

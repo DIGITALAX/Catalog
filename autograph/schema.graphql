@@ -120,6 +120,7 @@ type Collection @entity(immutable: false) {
   collectionMetadata: CollectionMetadata
   pubIds: [BigInt!]
   profileIds: [BigInt!]
+  mix: Boolean
 }
 type CurrencyAdded @entity(immutable: false) {
   id: Bytes!
