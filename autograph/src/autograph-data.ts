@@ -39,7 +39,7 @@ export function handleAutographCreated(event: AutographCreatedEvent): void {
   entity.amount = event.params.amount;
 
   let datos = AutographData.bind(
-    Address.fromString("0x6988e02B2da42b1eB4DAfbD09edb2457AE783dE4")
+    Address.fromString("0xe24e2baA8e53B06820952d82538b495C2A3fA247")
   );
 
   entity.price = datos.getAutographPrice();
@@ -159,7 +159,7 @@ export function handleGalleryCreated(event: GalleryCreatedEvent): void {
   entity.transactionHash = event.transaction.hash;
 
   let datos = AutographData.bind(
-    Address.fromString("0x6988e02B2da42b1eB4DAfbD09edb2457AE783dE4")
+    Address.fromString("0xe24e2baA8e53B06820952d82538b495C2A3fA247")
   );
 
   let colecciones: Bytes[] = [];
@@ -264,7 +264,7 @@ export function handleGalleryUpdated(event: GalleryUpdatedEvent): void {
   );
 
   let datos = AutographData.bind(
-    Address.fromString("0x6988e02B2da42b1eB4DAfbD09edb2457AE783dE4")
+    Address.fromString("0xe24e2baA8e53B06820952d82538b495C2A3fA247")
   );
 
   if (entityGallery) {
@@ -348,7 +348,7 @@ export function handleOrderCreated(event: OrderCreatedEvent): void {
   entity.transactionHash = event.transaction.hash;
 
   let datos = AutographData.bind(
-    Address.fromString("0x6988e02B2da42b1eB4DAfbD09edb2457AE783dE4")
+    Address.fromString("0xe24e2baA8e53B06820952d82538b495C2A3fA247")
   );
 
   const colIds = datos.getOrderCollectionIds(entity.orderId);

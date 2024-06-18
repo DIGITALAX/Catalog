@@ -144,4 +144,14 @@ contract AutographLibrary {
         uint16 galleryId;
         AutographLibrary.AutographType autographType;
     }
+
+    struct Send {
+        address[] currencies;
+        uint256[] collectionIds;
+        uint256[] maxAmount;
+        uint8[] quantities;
+        AutographLibrary.AutographType[] types;
+        string encryptedFulfillment;
+        address buyer;
+    }
 }

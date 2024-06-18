@@ -257,6 +257,8 @@ contract AutographData {
                     _colls.acceptedTokens[i][k]
                 ] = true;
             }
+
+            _collectionGallery[_collectionCounter] = _galleryId;
         }
 
         _collectionCount[_galleryId] =
@@ -321,6 +323,8 @@ contract AutographData {
                     _coll.acceptedTokens[k]
                 ];
             }
+
+            delete _collectionGallery[_coll.collectionId];
 
             delete _coll;
         }

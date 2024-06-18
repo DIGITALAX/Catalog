@@ -6,6 +6,7 @@ import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "./AutographAccessControl.sol";
 import "./AutographData.sol";
 import "./AutographMarket.sol";
+import "forge-std/console.sol";
 
 contract AutographCollection is ERC721Enumerable {
     AutographAccessControl public autographAccessControl;
@@ -95,7 +96,10 @@ contract AutographCollection is ERC721Enumerable {
 
         if (
             msg.sender !=
-            autographData.getCollectionDesignerByGalleryId(_collections[0], _galleryId)
+            autographData.getCollectionDesignerByGalleryId(
+                _collections[0],
+                _galleryId
+            )
         ) {
             revert NotGalleryDesigner();
         }
@@ -120,7 +124,10 @@ contract AutographCollection is ERC721Enumerable {
 
         if (
             msg.sender !=
-            autographData.getCollectionDesignerByGalleryId(_collections[0], _galleryId)
+            autographData.getCollectionDesignerByGalleryId(
+                _collections[0],
+                _galleryId
+            )
         ) {
             revert NotGalleryDesigner();
         }
@@ -198,7 +205,7 @@ contract AutographCollection is ERC721Enumerable {
                 galleryId: _galleries[i]
             });
         }
-
+        
         autographData.setMintedTokens(_childIds, _collections, _galleries, 1);
         return (_childIds, _parentId);
     }
