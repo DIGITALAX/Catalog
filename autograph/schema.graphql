@@ -80,6 +80,14 @@ type OrderCreated @entity(immutable: false) {
   blockNumber: BigInt!
   blockTimestamp: BigInt!
   transactionHash: Bytes!
+  buyer: Bytes!
+  fulfillment: String
+  amounts: [Int!]
+  subTotals: [BigInt!]
+  parentIds: [BigInt!]
+  collectionIds: String
+  currencies: [Bytes!]
+  mintedTokens: String
 }
 
 type PublicationConnected @entity(immutable: false) {

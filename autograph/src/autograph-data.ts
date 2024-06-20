@@ -3,6 +3,8 @@ import {
   BigInt,
   ByteArray,
   Bytes,
+  JSONValue,
+  json,
   store,
 } from "@graphprotocol/graph-ts";
 import {
@@ -342,7 +344,6 @@ export function handleOrderCreated(event: OrderCreatedEvent): void {
   entity.subOrderTypes = event.params.subOrderTypes;
   entity.total = event.params.total;
   entity.orderId = event.params.orderId;
-
   entity.blockNumber = event.block.number;
   entity.blockTimestamp = event.block.timestamp;
   entity.transactionHash = event.transaction.hash;
@@ -350,6 +351,51 @@ export function handleOrderCreated(event: OrderCreatedEvent): void {
   let datos = AutographData.bind(
     Address.fromString("0xe24e2baA8e53B06820952d82538b495C2A3fA247")
   );
+
+  entity.buyer = datos.getOrderBuyer(entity.orderId);
+  entity.fulfillment = datos.getOrderFulfillment(entity.orderId);
+  entity.amounts = datos.getOrderAmounts(entity.orderId);
+  entity.subTotals = datos.getOrderSubTotals(entity.orderId);
+  entity.parentIds = datos.getOrderParentIds(entity.orderId);
+  entity.currencies = datos
+    .getOrderCurrencies(entity.orderId)
+    .map<Bytes>((target: Bytes) => target);
+
+  let collectionIdsArray: BigInt[][] = datos.getOrderCollectionIds(
+    entity.orderId
+  );
+
+  let jsonString = '[';
+  for (let i = 0; i < collectionIdsArray.length; i++) {
+    jsonString += '[';
+    for (let j = 0; j < collectionIdsArray[i].length; j++) {
+      jsonString += '"' + collectionIdsArray[i][j].toString() + '"';
+      if (j < collectionIdsArray[i].length - 1) jsonString += ',';
+    }
+    jsonString += ']';
+    if (i < collectionIdsArray.length - 1) jsonString += ',';
+  }
+  jsonString += ']';
+  entity.collectionIds = jsonString;
+
+  let mintedTokensArray: BigInt[][] = datos.getOrderMintedTokens(
+    entity.orderId
+  );
+
+  let jsonStringMinted = '[';
+  for (let i = 0; i < mintedTokensArray.length; i++) {
+    jsonStringMinted += '[';
+    for (let j = 0; j < mintedTokensArray[i].length; j++) {
+      jsonStringMinted += '"' + mintedTokensArray[i][j].toString() + '"';
+      if (j < mintedTokensArray[i].length - 1) jsonStringMinted += ',';
+    }
+    jsonStringMinted += ']';
+    if (i < mintedTokensArray.length - 1) jsonStringMinted += ',';
+  }
+  jsonStringMinted += ']';
+  entity.mintedTokens = jsonStringMinted;
+
+
 
   const colIds = datos.getOrderCollectionIds(entity.orderId);
 

@@ -11,6 +11,7 @@ contract NPCPublication {
     AutographData public autographData;
     string public symbol;
     string public name;
+    uint256 private _callCount;
 
     error AddressInvalid();
 
@@ -36,6 +37,7 @@ contract NPCPublication {
     ) {
         symbol = _symbol;
         name = _name;
+        _callCount = 0;
         autographAccessControl = AutographAccessControl(
             _autographAccessControl
         );
@@ -93,37 +95,54 @@ contract NPCPublication {
 
     function getPublicationPredictByNPC(
         address _npcWallet
-    ) public view returns (AutographLibrary.LensType, address, uint8) {
-        uint256 minCount1 = type(uint256).max;
-        uint256 minCount2 = type(uint256).max;
-        AutographLibrary.LensType minLensType1 = AutographLibrary
+    ) public returns (AutographLibrary.LensType, address, uint8) {
+        uint256 _minCount1 = type(uint256).max;
+        uint256 _minCount2 = type(uint256).max;
+        AutographLibrary.LensType _minLensType1 = AutographLibrary
             .LensType
             .Comment;
-        AutographLibrary.LensType minLensType2 = AutographLibrary
+        AutographLibrary.LensType _minLensType2 = AutographLibrary
             .LensType
             .Comment;
 
+        AutographLibrary.LensType[4] memory _lensTypes = [
+            AutographLibrary.LensType.Catalog,
+            AutographLibrary.LensType.Comment,
+            AutographLibrary.LensType.Publication,
+            AutographLibrary.LensType.Autograph
+        ];
+
         for (uint8 i = 0; i < 4; i++) {
-            AutographLibrary.LensType lensType = AutographLibrary.LensType(i);
-            uint256 count = _lensTypeByNPC[_npcWallet][lensType];
-            if (count < minCount1) {
-                minCount2 = minCount1;
-                minLensType2 = minLensType1;
-                minCount1 = count;
-                minLensType1 = lensType;
-            } else if (count < minCount2) {
-                minCount2 = count;
-                minLensType2 = lensType;
+            uint8 n = uint8(
+                uint256(keccak256(abi.encodePacked(block.timestamp, i))) % 4
+            );
+            AutographLibrary.LensType temp = _lensTypes[i];
+            _lensTypes[i] = _lensTypes[n];
+            _lensTypes[n] = temp;
+        }
+
+        for (uint8 i = 0; i < 4; i++) {
+            AutographLibrary.LensType _lensType = _lensTypes[i];
+            uint256 _count = _lensTypeByNPC[_npcWallet][_lensType];
+
+            if (_count < _minCount1) {
+                _minCount2 = _minCount1;
+                _minLensType2 = _minLensType1;
+                _minCount1 = _count;
+                _minLensType1 = _lensType;
+            } else if (_count < _minCount2) {
+                _minCount2 = _count;
+                _minLensType2 = _lensType;
             }
         }
 
         AutographLibrary.LensType chosenLensType;
-        if (block.timestamp % 2 == 0) {
-            chosenLensType = minLensType1;
+        if (_callCount % 2 == 0) {
+            chosenLensType = _minLensType1;
         } else {
-            chosenLensType = minLensType2;
+            chosenLensType = _minLensType2;
         }
-
+        _callCount++;
         if (
             chosenLensType == AutographLibrary.LensType.Comment ||
             chosenLensType == AutographLibrary.LensType.Publication
@@ -139,10 +158,10 @@ contract NPCPublication {
             if (_selectedArtist != address(0)) {
                 return (chosenLensType, _selectedArtist, 0);
             } else {
-                if (minLensType1 != AutographLibrary.LensType.Autograph) {
-                    return (minLensType1, address(0), 0);
+                if (_minLensType1 != AutographLibrary.LensType.Autograph) {
+                    return (_minLensType1, address(0), 0);
                 } else {
-                    return (minLensType2, address(0), 0);
+                    return (_minLensType2, address(0), 0);
                 }
             }
         } else {
@@ -162,21 +181,18 @@ contract NPCPublication {
         for (uint256 i = 0; i < artists.length; i++) {
             uint256 count = _artistByNPC[_npcWallet][artists[i]];
             if (
-                count < minCount1 &&
                 autographData.getArtistCollectionsAvailable(artists[i]).length >
                 0
             ) {
-                minCount2 = minCount1;
-                minArtist2 = minArtist1;
-                minCount1 = count;
-                minArtist1 = artists[i];
-            } else if (
-                count < minCount2 &&
-                autographData.getArtistCollectionsAvailable(artists[i]).length >
-                0
-            ) {
-                minCount2 = count;
-                minArtist2 = artists[i];
+                if (count < minCount1) {
+                    minCount2 = minCount1;
+                    minArtist2 = minArtist1;
+                    minCount1 = count;
+                    minArtist1 = artists[i];
+                } else if (count < minCount2) {
+                    minCount2 = count;
+                    minArtist2 = artists[i];
+                }
             }
         }
 

@@ -192,7 +192,7 @@ contract AutographData {
             _galleryCollections[_galleryCounter].push(_collectionCounter);
             _collectionGallery[_collectionCounter] = _galleryCounter;
 
-            if (_collections[_galleryCounter][_collectionCounter].amount > 2) {
+            if (_colls.amounts[i] > 2) {
                 _nftMix.push(_collectionCounter);
             }
 
@@ -296,14 +296,12 @@ contract AutographData {
         address _designer,
         uint16 _galleryId
     ) external OnlyCollection {
-        uint16[] storage _galleries = _designerGallery[_designer];
+        uint256[] storage _collecciones = _galleryCollections[_galleryId];
 
-        for (uint16 i = 0; i < _galleries.length; i++) {
+        for (uint256 i = 0; i < _collecciones.length; i++) {
             AutographLibrary.Collection memory _coll = _collections[_galleryId][
-                _galleries[i]
+                _collecciones[i]
             ];
-
-            uint256[] memory _profs = _coll.profileIds;
 
             for (uint16 k = 0; k < _nftMix.length; k++) {
                 if (_nftMix[k] == _coll.collectionId) {
@@ -312,6 +310,8 @@ contract AutographData {
                     return;
                 }
             }
+
+            uint256[] memory _profs = _coll.profileIds;
 
             for (uint16 j = 0; j < _profs.length; j++) {
                 delete _publicationCollection[_profs[j]][_coll.pubIds[j]];
@@ -324,10 +324,22 @@ contract AutographData {
                 ];
             }
 
+            uint256[] storage _dCols = _artistCollectionsAvailable[_designer];
+
+            for (uint8 k = 0; k < _dCols.length; k++) {
+                if (_dCols[k] == _coll.collectionId) {
+                    _dCols[k] = _dCols[_dCols.length - 1];
+                    _dCols.pop();
+                    return;
+                }
+            }
+
             delete _collectionGallery[_coll.collectionId];
 
             delete _coll;
         }
+
+        uint16[] storage _galleries = _designerGallery[_designer];
 
         for (uint16 i = 0; i < _galleries.length; i++) {
             if (_galleries[i] == _galleryId) {
@@ -340,7 +352,6 @@ contract AutographData {
         delete _collectionCount[_galleryId];
         delete _galleryEditable[_galleryId];
         delete _galleryCollections[_galleryId];
-        delete _artistCollectionsAvailable[_designer];
 
         emit GalleryDeleted(_designer, _galleryId);
     }
