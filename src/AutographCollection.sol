@@ -6,7 +6,6 @@ import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "./AutographAccessControl.sol";
 import "./AutographData.sol";
 import "./AutographMarket.sol";
-import "forge-std/console.sol";
 
 contract AutographCollection is ERC721Enumerable {
     AutographAccessControl public autographAccessControl;

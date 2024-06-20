@@ -61,7 +61,7 @@ contract NPCPublicationTest is Test {
             "NPCP",
             "NPC Publication",
             address(accessControl),
-            address(autographCollection)
+            address(autographData)
         );
         autographOpenAction = new AutographOpenAction(
             "metadata",
@@ -255,31 +255,113 @@ contract NPCPublicationTest is Test {
     }
 
     function testGetPublicationPredictByNPC() public {
-        // AutographLibrary.CollectionInit
-        //     memory _params = createInitialGalleryAndCollections();
+        createInitialGalleryAndCollections();
 
+        address[] memory acceptedTokens = new address[](3);
+        acceptedTokens[0] = address(eth);
+        acceptedTokens[1] = address(usdt);
+        acceptedTokens[2] = address(matic);
+        string[] memory pages = new string[](4);
+        pages[0] = "page1uri";
+        pages[1] = "page2uri";
+        pages[2] = "page3uri";
+        pages[3] = "page4uri";
+
+        AutographLibrary.OpenActionParams memory params = AutographLibrary
+            .OpenActionParams({
+                autographType: AutographLibrary.AutographType.Catalog,
+                price: 100000000000000000000,
+                acceptedTokens: acceptedTokens,
+                uri: "mainuri",
+                amount: 500,
+                pages: pages,
+                pageCount: 4,
+                collectionId: 0,
+                galleryId: 0
+            });
+
+        bytes memory data = abi.encode(params);
+
+        vm.prank(hub);
+        autographOpenAction.initializePublicationAction(900, 120, owner, data);
+
+        (
+            AutographLibrary.LensType _lensType,
+            address _artist,
+            uint8 _page
+        ) = npcPublication.getPublicationPredictByNPC(npc);
+        vm.prank(npc);
+        npcPublication.registerPublication(_artist, 500, 134, _page, _lensType);
+
+        (
+            AutographLibrary.LensType _lensTypeDos,
+            address _artistDos,
+            uint8 _pageDos
+        ) = npcPublication.getPublicationPredictByNPC(npc);
         vm.prank(npc);
         npcPublication.registerPublication(
-            owner,
-            500,
-            134,
-            1,
-            AutographLibrary.LensType.Catalog
-        );
-
-        vm.prank(npc);
-        npcPublication.registerPublication(
-            artist,
+            _artistDos,
             230,
             121,
-            0,
-            AutographLibrary.LensType.Autograph
+            _pageDos,
+            _lensTypeDos
         );
 
         (
-            AutographLibrary.LensType lensType,
-            address _artist,
-            uint8 page
+            AutographLibrary.LensType _lensTypeTres,
+            address _artistTres,
+            uint8 _pageTres
         ) = npcPublication.getPublicationPredictByNPC(npc);
+        vm.prank(npc);
+        npcPublication.registerPublication(
+            _artistTres,
+            230,
+            121,
+            _pageTres,
+            _lensTypeTres
+        );
+
+        (
+            AutographLibrary.LensType _lensTypeCuatro,
+            address _artistCuatro,
+            uint8 _pageCuatro
+        ) = npcPublication.getPublicationPredictByNPC(npc);
+        vm.prank(npc);
+        npcPublication.registerPublication(
+            _artistCuatro,
+            230,
+            121,
+            _pageCuatro,
+            _lensTypeCuatro
+        );
+
+        (
+            AutographLibrary.LensType _lensTypeCinco,
+            address _artistCinco,
+            uint8 _pageCinco
+        ) = npcPublication.getPublicationPredictByNPC(npc);
+        vm.prank(npc);
+        npcPublication.registerPublication(
+            _artistCinco,
+            230,
+            121,
+            _pageCinco,
+            _lensTypeCinco
+        );
+
+
+        (
+            AutographLibrary.LensType _lensTypeSeis,
+            address _artistSeis,
+            uint8 _pageSeis
+        ) = npcPublication.getPublicationPredictByNPC(npc);
+        vm.prank(npc);
+        npcPublication.registerPublication(
+            _artistSeis,
+            230,
+            121,
+            _pageSeis,
+            _lensTypeSeis
+        );
     }
 }

@@ -433,6 +433,7 @@ contract AutographMarket {
 
         uint256[] memory _selectedCollectionIds = new uint256[](_numNFTs);
         uint16[] memory _galleries = new uint16[](_numNFTs);
+        _shuffle(_filteredCollectionIds, _filteredGalleries, _filteredCount);
 
         for (uint256 i = 0; i < _filteredCount && _count < _numNFTs; i++) {
             uint256 price = autographData.getCollectionPriceByGalleryId(
@@ -480,6 +481,22 @@ contract AutographMarket {
                     );
                 }
             }
+        }
+    }
+
+    function _shuffle(
+        uint256[] memory _array,
+        uint16[] memory _galleries,
+        uint256 _count
+    ) internal view {
+        for (uint256 i = _count - 1; i > 0; i--) {
+            uint256 j = uint256(
+                keccak256(
+                    abi.encodePacked(block.timestamp, block.prevrandao, i)
+                )
+            ) % (i + 1);
+            (_array[i], _array[j]) = (_array[j], _array[i]);
+            (_galleries[i], _galleries[j]) = (_galleries[j], _galleries[i]);
         }
     }
 

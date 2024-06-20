@@ -121,9 +121,9 @@ contract AutographOpenAction is
                 (string, address, uint8, AutographLibrary.AutographType)
             );
 
-        if (!MODULE_GLOBALS.isErc20CurrencyRegistered(_currency)) {
-            revert CurrencyNotWhitelisted();
-        }
+        // if (!MODULE_GLOBALS.isErc20CurrencyRegistered(_currency)) {
+        //     revert CurrencyNotWhitelisted();
+        // }
 
         uint256 _collectionId = 0;
 

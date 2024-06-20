@@ -926,7 +926,7 @@ contract AutographDataTest is Test {
             keccak256(
                 abi.encodePacked((autographData.getOrderCollectionIds(1)[0]))
             ),
-            keccak256(abi.encodePacked(([1, 3, 4])))
+            keccak256(abi.encodePacked(([4, 1, 3])))
         );
         assertEq(
             keccak256(abi.encodePacked((autographData.getOrderCurrencies(1)))),
@@ -1111,7 +1111,7 @@ contract AutographDataTest is Test {
             keccak256(
                 abi.encodePacked((autographData.getOrderCollectionIds(1)[1]))
             ),
-            keccak256(abi.encodePacked(([1, 3, 4])))
+            keccak256(abi.encodePacked(([4, 1, 3])))
         );
         assertEq(
             keccak256(
@@ -1135,7 +1135,7 @@ contract AutographDataTest is Test {
             keccak256(
                 abi.encodePacked((autographData.getOrderCollectionIds(1)[5]))
             ),
-            keccak256(abi.encodePacked(([1, 3, 4])))
+            keccak256(abi.encodePacked(([4, 1, 3])))
         );
         assertEq(
             keccak256(abi.encodePacked((autographData.getOrderCurrencies(1)))),
