@@ -32,6 +32,13 @@ contract AutographOpenAction is
 
     mapping(uint256 => mapping(uint256 => uint256)) _catalogGroups;
 
+    modifier OnlyAdmin() {
+        if (!autographAccessControl.isAdmin(msg.sender)) {
+            revert InvalidAddress();
+        }
+        _;
+    }
+
     constructor(
         string memory _metadataDetails,
         address _hub,
@@ -121,9 +128,9 @@ contract AutographOpenAction is
                 (string, address, uint8, AutographLibrary.AutographType)
             );
 
-        // if (!MODULE_GLOBALS.isErc20CurrencyRegistered(_currency)) {
-        //     revert CurrencyNotWhitelisted();
-        // }
+        if (!MODULE_GLOBALS.isErc20CurrencyRegistered(_currency)) {
+            revert CurrencyNotWhitelisted();
+        }
 
         uint256 _collectionId = 0;
 
@@ -161,5 +168,13 @@ contract AutographOpenAction is
         returns (string memory)
     {
         return _metadata;
+    }
+
+    function setAutographMarket(address _autographMarket) public OnlyAdmin {
+        autographMarket = AutographMarket(_autographMarket);
+    }
+
+    function setAutographData(address _autographData) public OnlyAdmin {
+        autographData = AutographData(_autographData);
     }
 }

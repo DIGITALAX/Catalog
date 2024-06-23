@@ -713,4 +713,12 @@ contract AutographMarket {
     function setAutographData(address _autographData) public OnlyAdmin {
         autographData = AutographData(_autographData);
     }
+
+    function setAutographNFT(address _autographNFT) public OnlyAdmin {
+        autographNFT = AutographNFT(_autographNFT);
+    }
+
+    function setPrintSplitsData(address _printSplitsData) public OnlyAdmin {
+        printSplitsData = PrintSplitsData(_printSplitsData);
+    }
 }

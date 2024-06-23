@@ -12,6 +12,7 @@ contract NPCPublication {
     string public symbol;
     string public name;
     uint256 private _callCount;
+    bool private _activated;
 
     error AddressInvalid();
 
@@ -41,11 +42,19 @@ contract NPCPublication {
         autographAccessControl = AutographAccessControl(
             _autographAccessControl
         );
+        _activated = false;
         autographData = AutographData(_autographData);
     }
 
     modifier NPCOnly() {
         if (!autographAccessControl.isNPC(msg.sender)) {
+            revert AddressInvalid();
+        }
+        _;
+    }
+
+    modifier OnlyAdmin() {
+        if (!autographAccessControl.isAdmin(msg.sender)) {
             revert AddressInvalid();
         }
         _;
@@ -105,12 +114,18 @@ contract NPCPublication {
             .LensType
             .Comment;
 
-        AutographLibrary.LensType[4] memory _lensTypes = [
-            AutographLibrary.LensType.Catalog,
-            AutographLibrary.LensType.Comment,
-            AutographLibrary.LensType.Publication,
-            AutographLibrary.LensType.Autograph
-        ];
+        AutographLibrary.LensType[] memory _lensTypes;
+
+        if (_activated) {
+            _lensTypes[0] = AutographLibrary.LensType.Catalog;
+            _lensTypes[1] = AutographLibrary.LensType.Comment;
+            _lensTypes[2] = AutographLibrary.LensType.Publication;
+            _lensTypes[3] = AutographLibrary.LensType.Autograph;
+            _lensTypes[4] = AutographLibrary.LensType.Quote;
+            _lensTypes[5] = AutographLibrary.LensType.Mirror;
+        } else {
+            return (AutographLibrary.LensType.Publication, 0, 0, 0);
+        }
 
         for (uint8 i = 0; i < 4; i++) {
             uint8 n = uint8(
@@ -241,5 +256,17 @@ contract NPCPublication {
         } else {
             return minPage2;
         }
+    }
+
+    function activatePublications() public OnlyAdmin {
+        if (_activated) {
+            _activated = false;
+        } else {
+            _activated = true;
+        }
+    }
+
+    function setAutographData(address _autographData) public OnlyAdmin {
+        autographData = AutographData(_autographData);
     }
 }
