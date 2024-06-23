@@ -60,7 +60,9 @@ contract AutographCollection is ERC721Enumerable {
                 acceptedTokens: _colls.acceptedTokens,
                 uris: _colls.uris,
                 amounts: _colls.amounts,
-                collectionTypes: _colls.collectionTypes
+                collectionTypes: _colls.collectionTypes,
+                npcs: _colls.npcs,
+                languages: _colls.languages
             }),
             msg.sender
         );
@@ -204,7 +206,7 @@ contract AutographCollection is ERC721Enumerable {
                 galleryId: _galleries[i]
             });
         }
-        
+
         autographData.setMintedTokens(_childIds, _collections, _galleries, 1);
         return (_childIds, _parentId);
     }

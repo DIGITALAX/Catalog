@@ -26,7 +26,7 @@ contract NPCPublication {
         private _publications;
     mapping(address => mapping(AutographLibrary.LensType => uint256))
         private _lensTypeByNPC;
-    mapping(address => mapping(address => uint256)) private _artistByNPC;
+    mapping(address => mapping(uint256 => uint256)) private _collectionByNPC;
     mapping(address => mapping(uint8 => uint256)) private _pageByNPC;
 
     constructor(
@@ -52,21 +52,21 @@ contract NPCPublication {
     }
 
     function registerPublication(
-        address _artist,
+        uint256 _collection,
         uint256 _profileId,
         uint256 _pubId,
         uint8 _pageNumber,
         AutographLibrary.LensType _lensType
     ) public NPCOnly {
         _publications[_profileId][_pubId].lensType = _lensType;
-        _publications[_profileId][_pubId].artist = _artist;
+        _publications[_profileId][_pubId].collectionId = _collection;
         _publications[_profileId][_pubId].npc = msg.sender;
         _lensTypeByNPC[msg.sender][_lensType] += 1;
 
         if (_lensType == AutographLibrary.LensType.Catalog) {
             _pageByNPC[msg.sender][_pageNumber] += 1;
         } else if (_lensType == AutographLibrary.LensType.Autograph) {
-            _artistByNPC[msg.sender][_artist] += 1;
+            _collectionByNPC[msg.sender][_collection] += 1;
         }
 
         emit PublicationRegistered(msg.sender, _profileId, _pubId, _lensType);
@@ -79,11 +79,11 @@ contract NPCPublication {
         return _publications[_profileId][_pubId].lensType;
     }
 
-    function getPublicationArtist(
+    function getPublicationCollectionId(
         uint256 _profileId,
         uint256 _pubId
-    ) public view returns (address) {
-        return _publications[_profileId][_pubId].artist;
+    ) public view returns (uint256) {
+        return _publications[_profileId][_pubId].collectionId;
     }
 
     function getPublicationNPC(
@@ -95,7 +95,7 @@ contract NPCPublication {
 
     function getPublicationPredictByNPC(
         address _npcWallet
-    ) public returns (AutographLibrary.LensType, address, uint8, uint256) {
+    ) public returns (AutographLibrary.LensType, uint256, uint8, uint256) {
         uint256 _minCount1 = type(uint256).max;
         uint256 _minCount2 = type(uint256).max;
         AutographLibrary.LensType _minLensType1 = AutographLibrary
@@ -144,69 +144,73 @@ contract NPCPublication {
         }
         _callCount++;
         if (chosenLensType == AutographLibrary.LensType.Publication) {
-            return (chosenLensType, address(0), 0, 0);
+            return (chosenLensType, 0, 0, 0);
         } else if (chosenLensType == AutographLibrary.LensType.Catalog) {
             uint8 _pageNumber = _findLeastPublishedPage(_npcWallet);
             uint256 _profileId = autographData.getAutographProfileId();
-            return (chosenLensType, address(0), _pageNumber, _profileId);
+            return (chosenLensType, 0, _pageNumber, _profileId);
         } else if (
             chosenLensType == AutographLibrary.LensType.Autograph ||
             chosenLensType == AutographLibrary.LensType.Mirror ||
             chosenLensType == AutographLibrary.LensType.Comment ||
             chosenLensType == AutographLibrary.LensType.Quote
         ) {
-            address _selectedArtist = _findLeastPublishedArtistWithAvailableCollections(
+            uint256 _selectedCollection = _findLeastPublishedArtistWithAvailableCollections(
                     _npcWallet
                 );
+
+            uint16 _gId = autographData.getCollectionGallery(
+                _selectedCollection
+            );
+
+            address _selectedArtist = autographData
+                .getCollectionDesignerByGalleryId(_selectedCollection, _gId);
 
             uint256 _profileId = autographData.getDesignerProfileId(
                 _selectedArtist
             );
-            if (_selectedArtist != address(0)) {
-                return (chosenLensType, _selectedArtist, 0, _profileId);
+            if (_selectedCollection != uint256(0)) {
+                return (chosenLensType, _selectedCollection, 0, _profileId);
             } else {
                 if (_minLensType1 != AutographLibrary.LensType.Autograph) {
-                    return (_minLensType1, address(0), 0, 0);
+                    return (_minLensType1, 0, 0, 0);
                 } else {
-                    return (_minLensType2, address(0), 0, 0);
+                    return (_minLensType2, 0, 0, 0);
                 }
             }
         } else {
-            return (chosenLensType, address(0), 0, 0);
+            return (chosenLensType, 0, 0, 0);
         }
     }
 
     function _findLeastPublishedArtistWithAvailableCollections(
         address _npcWallet
-    ) internal view returns (address) {
-        address[] memory artists = autographData.getAllArtists();
+    ) internal view returns (uint256) {
+        uint256[] memory collectionIds = autographData.getNPCToCollections(
+            _npcWallet
+        );
         uint256 minCount1 = type(uint256).max;
         uint256 minCount2 = type(uint256).max;
-        address minArtist1 = address(0);
-        address minArtist2 = address(0);
+        uint256 minCollection1 = 0;
+        uint256 minCollection2 = 0;
 
-        for (uint256 i = 0; i < artists.length; i++) {
-            uint256 count = _artistByNPC[_npcWallet][artists[i]];
-            if (
-                autographData.getArtistCollectionsAvailable(artists[i]).length >
-                0
-            ) {
-                if (count < minCount1) {
-                    minCount2 = minCount1;
-                    minArtist2 = minArtist1;
-                    minCount1 = count;
-                    minArtist1 = artists[i];
-                } else if (count < minCount2) {
-                    minCount2 = count;
-                    minArtist2 = artists[i];
-                }
+        for (uint256 i = 0; i < collectionIds.length; i++) {
+            uint256 count = _collectionByNPC[_npcWallet][collectionIds[i]];
+            if (count < minCount1) {
+                minCount2 = minCount1;
+                minCollection2 = minCollection1;
+                minCount1 = count;
+                minCollection1 = collectionIds[i];
+            } else if (count < minCount2) {
+                minCount2 = count;
+                minCollection2 = collectionIds[i];
             }
         }
 
-        if (minArtist1 != address(0)) {
-            return minArtist1;
+        if (minCollection1 != uint256(0)) {
+            return minCollection1;
         } else {
-            return minArtist2;
+            return minCollection2;
         }
     }
 
