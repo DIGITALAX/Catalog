@@ -170,7 +170,11 @@ export function handleGalleryCreated(event: GalleryCreatedEvent): void {
     let coleccion = new Collection(
       Bytes.fromByteArray(ByteArray.fromBigInt(entity.collectionIds[i]))
     );
-    coleccion.mix = true;
+    if (coleccion.amount < 3) {
+      coleccion.mix = false;
+    } else {
+      coleccion.mix = true;
+    }
     coleccion.collectionId = entity.collectionIds[i];
     coleccion.acceptedTokens = datos
       .getCollectionAcceptedTokensByGalleryId(
@@ -286,7 +290,13 @@ export function handleGalleryUpdated(event: GalleryUpdatedEvent): void {
       );
 
       colecciones.push(coleccion.id);
-      coleccion.mix = true;
+
+      if (coleccion.amount < 3) {
+        coleccion.mix = false;
+      } else {
+        coleccion.mix = true;
+      }
+
       coleccion.collectionId = entity.collectionIds[i];
       coleccion.acceptedTokens = datos
         .getCollectionAcceptedTokensByGalleryId(
@@ -365,37 +375,35 @@ export function handleOrderCreated(event: OrderCreatedEvent): void {
     entity.orderId
   );
 
-  let jsonString = '[';
+  let jsonString = "[";
   for (let i = 0; i < collectionIdsArray.length; i++) {
-    jsonString += '[';
+    jsonString += "[";
     for (let j = 0; j < collectionIdsArray[i].length; j++) {
       jsonString += '"' + collectionIdsArray[i][j].toString() + '"';
-      if (j < collectionIdsArray[i].length - 1) jsonString += ',';
+      if (j < collectionIdsArray[i].length - 1) jsonString += ",";
     }
-    jsonString += ']';
-    if (i < collectionIdsArray.length - 1) jsonString += ',';
+    jsonString += "]";
+    if (i < collectionIdsArray.length - 1) jsonString += ",";
   }
-  jsonString += ']';
+  jsonString += "]";
   entity.collectionIds = jsonString;
 
   let mintedTokensArray: BigInt[][] = datos.getOrderMintedTokens(
     entity.orderId
   );
 
-  let jsonStringMinted = '[';
+  let jsonStringMinted = "[";
   for (let i = 0; i < mintedTokensArray.length; i++) {
-    jsonStringMinted += '[';
+    jsonStringMinted += "[";
     for (let j = 0; j < mintedTokensArray[i].length; j++) {
       jsonStringMinted += '"' + mintedTokensArray[i][j].toString() + '"';
-      if (j < mintedTokensArray[i].length - 1) jsonStringMinted += ',';
+      if (j < mintedTokensArray[i].length - 1) jsonStringMinted += ",";
     }
-    jsonStringMinted += ']';
-    if (i < mintedTokensArray.length - 1) jsonStringMinted += ',';
+    jsonStringMinted += "]";
+    if (i < mintedTokensArray.length - 1) jsonStringMinted += ",";
   }
-  jsonStringMinted += ']';
+  jsonStringMinted += "]";
   entity.mintedTokens = jsonStringMinted;
-
-
 
   const colIds = datos.getOrderCollectionIds(entity.orderId);
 
@@ -406,27 +414,25 @@ export function handleOrderCreated(event: OrderCreatedEvent): void {
       );
 
       if (entityCollection) {
-        let mintedTokens = entityCollection.mintedTokens;
+        const gId = datos.getCollectionGallery(entityCollection.collectionId);
 
-        if (mintedTokens == null) {
-          mintedTokens = [];
+        entityCollection.mintedTokens = datos.getMintedTokenIdsByGalleryId(
+          entityCollection.collectionId,
+          gId
+        );
+
+        if (entityCollection.mintedTokens == null) {
+          entityCollection.mintedTokens = [];
         }
 
-        let tokens = datos.getOrderMintedTokens(event.params.orderId);
-
-        for (let k = 0; k < tokens.length; k++) {
-          if (i < tokens.length && k < tokens[i].length) {
-            mintedTokens.push(tokens[i][k]);
-          }
-        }
-
-        if (entityCollection.amount - mintedTokens.length > 2) {
+        if (
+          entityCollection.amount - (entityCollection.mintedTokens as BigInt[]).length >
+          2
+        ) {
           entityCollection.mix = true;
         } else {
           entityCollection.mix = false;
         }
-
-        entityCollection.mintedTokens = mintedTokens;
 
         entityCollection.save();
       }

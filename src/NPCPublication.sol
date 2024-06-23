@@ -95,7 +95,7 @@ contract NPCPublication {
 
     function getPublicationPredictByNPC(
         address _npcWallet
-    ) public returns (AutographLibrary.LensType, address, uint8) {
+    ) public returns (AutographLibrary.LensType, address, uint8, uint256) {
         uint256 _minCount1 = type(uint256).max;
         uint256 _minCount2 = type(uint256).max;
         AutographLibrary.LensType _minLensType1 = AutographLibrary
@@ -143,29 +143,36 @@ contract NPCPublication {
             chosenLensType = _minLensType2;
         }
         _callCount++;
-        if (
-            chosenLensType == AutographLibrary.LensType.Comment ||
-            chosenLensType == AutographLibrary.LensType.Publication
-        ) {
-            return (chosenLensType, address(0), 0);
+        if (chosenLensType == AutographLibrary.LensType.Publication) {
+            return (chosenLensType, address(0), 0, 0);
         } else if (chosenLensType == AutographLibrary.LensType.Catalog) {
             uint8 _pageNumber = _findLeastPublishedPage(_npcWallet);
-            return (chosenLensType, address(0), _pageNumber);
-        } else if (chosenLensType == AutographLibrary.LensType.Autograph) {
+            uint256 _profileId = autographData.getAutographProfileId();
+            return (chosenLensType, address(0), _pageNumber, _profileId);
+        } else if (
+            chosenLensType == AutographLibrary.LensType.Autograph ||
+            chosenLensType == AutographLibrary.LensType.Mirror ||
+            chosenLensType == AutographLibrary.LensType.Comment ||
+            chosenLensType == AutographLibrary.LensType.Quote
+        ) {
             address _selectedArtist = _findLeastPublishedArtistWithAvailableCollections(
                     _npcWallet
                 );
+
+            uint256 _profileId = autographData.getDesignerProfileId(
+                _selectedArtist
+            );
             if (_selectedArtist != address(0)) {
-                return (chosenLensType, _selectedArtist, 0);
+                return (chosenLensType, _selectedArtist, 0, _profileId);
             } else {
                 if (_minLensType1 != AutographLibrary.LensType.Autograph) {
-                    return (_minLensType1, address(0), 0);
+                    return (_minLensType1, address(0), 0, 0);
                 } else {
-                    return (_minLensType2, address(0), 0);
+                    return (_minLensType2, address(0), 0, 0);
                 }
             }
         } else {
-            return (chosenLensType, address(0), 0);
+            return (chosenLensType, address(0), 0, 0);
         }
     }
 

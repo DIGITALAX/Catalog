@@ -288,7 +288,8 @@ contract NPCPublicationTest is Test {
         (
             AutographLibrary.LensType _lensType,
             address _artist,
-            uint8 _page
+            uint8 _page,
+            uint256 _profileId
         ) = npcPublication.getPublicationPredictByNPC(npc);
         vm.prank(npc);
         npcPublication.registerPublication(_artist, 500, 134, _page, _lensType);
@@ -296,7 +297,8 @@ contract NPCPublicationTest is Test {
         (
             AutographLibrary.LensType _lensTypeDos,
             address _artistDos,
-            uint8 _pageDos
+            uint8 _pageDos,
+            uint256 _profileIdDos
         ) = npcPublication.getPublicationPredictByNPC(npc);
         vm.prank(npc);
         npcPublication.registerPublication(
@@ -310,7 +312,8 @@ contract NPCPublicationTest is Test {
         (
             AutographLibrary.LensType _lensTypeTres,
             address _artistTres,
-            uint8 _pageTres
+            uint8 _pageTres,
+            uint256 _profileIdTres
         ) = npcPublication.getPublicationPredictByNPC(npc);
         vm.prank(npc);
         npcPublication.registerPublication(
@@ -324,7 +327,8 @@ contract NPCPublicationTest is Test {
         (
             AutographLibrary.LensType _lensTypeCuatro,
             address _artistCuatro,
-            uint8 _pageCuatro
+            uint8 _pageCuatro,
+            uint256 _profileIdCuatro
         ) = npcPublication.getPublicationPredictByNPC(npc);
         vm.prank(npc);
         npcPublication.registerPublication(
@@ -338,7 +342,8 @@ contract NPCPublicationTest is Test {
         (
             AutographLibrary.LensType _lensTypeCinco,
             address _artistCinco,
-            uint8 _pageCinco
+            uint8 _pageCinco,
+            uint256 _profileIdCinco
         ) = npcPublication.getPublicationPredictByNPC(npc);
         vm.prank(npc);
         npcPublication.registerPublication(
@@ -349,11 +354,11 @@ contract NPCPublicationTest is Test {
             _lensTypeCinco
         );
 
-
         (
             AutographLibrary.LensType _lensTypeSeis,
             address _artistSeis,
-            uint8 _pageSeis
+            uint8 _pageSeis,
+            uint256 _profileIdSeis
         ) = npcPublication.getPublicationPredictByNPC(npc);
         vm.prank(npc);
         npcPublication.registerPublication(
