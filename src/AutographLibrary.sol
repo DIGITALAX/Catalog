@@ -21,8 +21,8 @@ contract AutographLibrary {
     }
 
     struct Publication {
-        address artist;
         address npc;
+        uint256 collectionId;
         LensType lensType;
     }
 
@@ -65,6 +65,8 @@ contract AutographLibrary {
     }
 
     struct CollectionInit {
+        string[][] languages;
+        address[][] npcs;
         address[][] acceptedTokens;
         uint256[] prices;
         string[] uris;
@@ -73,6 +75,8 @@ contract AutographLibrary {
     }
 
     struct Collection {
+        string[] languages;
+        address[] npcs;
         address[] acceptedTokens;
         uint256[] pubIds;
         uint256[] profileIds;

@@ -426,7 +426,8 @@ export function handleOrderCreated(event: OrderCreatedEvent): void {
         }
 
         if (
-          entityCollection.amount - (entityCollection.mintedTokens as BigInt[]).length >
+          entityCollection.amount -
+            (entityCollection.mintedTokens as BigInt[]).length >
           2
         ) {
           entityCollection.mix = true;

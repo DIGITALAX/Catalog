@@ -34,6 +34,10 @@ contract AutographDataTest is Test {
     address public secondDesigner = address(11);
     address public buyer = address(12);
     address public fulfiller = address(13);
+        address public npc1 = address(14);
+    address public npc2 = address(15);
+    address public npc3 = address(16);
+    address public npc4 = address(17);
 
     bytes32 constant ADDRESS_NOT_VERIFIED_ERROR =
         keccak256("AddressNotVerified()");
@@ -213,13 +217,36 @@ contract AutographDataTest is Test {
         collectionTypes[2] = AutographLibrary.AutographType.NFT;
         collectionTypes[3] = AutographLibrary.AutographType.Shirt;
 
+
+        string[][] memory languages = new string[][](4);
+        languages[0] = new string[](1);
+        languages[0][0] = "he";
+        languages[1] = new string[](1);
+        languages[1][0] = "br";
+        languages[2] = new string[](1);
+        languages[2][0] = "ar";
+        languages[3] = new string[](1);
+        languages[3][0] = "es";
+
+        address[][] memory npcs = new address[][](4);
+        npcs[0] = new address[](1);
+        npcs[0][0] = npc1;
+        npcs[1] = new address[](1);
+        npcs[1][0] = npc2;
+        npcs[2] = new address[](1);
+        npcs[2][0] = npc3;
+        npcs[3] = new address[](1);
+        npcs[3][0] = npc4;
+
         AutographLibrary.CollectionInit memory collectionInit = AutographLibrary
             .CollectionInit({
                 uris: uris,
                 amounts: amounts,
                 prices: prices,
                 acceptedTokens: acceptedTokens,
-                collectionTypes: collectionTypes
+                collectionTypes: collectionTypes,
+                npcs: npcs,
+                languages: languages
             });
 
         vm.prank(designer);

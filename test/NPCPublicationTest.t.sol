@@ -8,6 +8,7 @@ import "../src/AutographLibrary.sol";
 import "../src/AutographData.sol";
 import "../src/TestERC20.sol";
 import "../src/AutographOpenAction.sol";
+import "forge-std/console.sol";
 
 contract NPCPublicationTest is Test {
     NPCPublication public npcPublication;
@@ -25,7 +26,6 @@ contract NPCPublicationTest is Test {
     TestERC20 public matic;
 
     address admin = address(1);
-    address npc = address(2);
     address artist = address(3);
     address nonNpc = address(4);
     address public owner = address(5);
@@ -34,6 +34,7 @@ contract NPCPublicationTest is Test {
     address public fulfiller = address(8);
     address public hub = address(9);
     address public moduleGlobals = address(10);
+    address public npc1 = address(12);
 
     function setUp() public {
         accessControl = new AutographAccessControl();
@@ -105,7 +106,7 @@ contract NPCPublicationTest is Test {
         accessControl.addDesigner(artist);
 
         vm.prank(owner);
-        accessControl.addNPC(npc);
+        accessControl.addNPC(npc1);
 
         vm.prank(owner);
         accessControl.addOpenAction(address(autographOpenAction));
@@ -117,9 +118,9 @@ contract NPCPublicationTest is Test {
     }
 
     function testRegisterPublication() public {
-        vm.prank(npc);
+        vm.prank(npc1);
         npcPublication.registerPublication(
-            artist,
+            12,
             1,
             1,
             1,
@@ -130,15 +131,15 @@ contract NPCPublicationTest is Test {
             uint(npcPublication.getPublicationType(1, 1)),
             uint(AutographLibrary.LensType.Autograph)
         );
-        assertEq(npcPublication.getPublicationArtist(1, 1), artist);
-        assertEq(npcPublication.getPublicationNPC(1, 1), npc);
+        assertEq(npcPublication.getPublicationCollectionId(1, 1), 12);
+        assertEq(npcPublication.getPublicationNPC(1, 1), npc1);
     }
 
     function testRegisterPublicationRevertsIfNotNPC() public {
         vm.prank(nonNpc);
         try
             npcPublication.registerPublication(
-                artist,
+                400,
                 1,
                 1,
                 1,
@@ -153,9 +154,9 @@ contract NPCPublicationTest is Test {
     }
 
     function testGetPublicationType() public {
-        vm.prank(npc);
+        vm.prank(npc1);
         npcPublication.registerPublication(
-            artist,
+            12,
             1,
             1,
             1,
@@ -169,29 +170,29 @@ contract NPCPublicationTest is Test {
     }
 
     function testGetPublicationArtist() public {
-        vm.prank(npc);
+        vm.prank(npc1);
         npcPublication.registerPublication(
-            artist,
+            12,
             1,
             1,
             1,
             AutographLibrary.LensType.Autograph
         );
 
-        assertEq(npcPublication.getPublicationArtist(1, 1), artist);
+        assertEq(npcPublication.getPublicationCollectionId(1, 1), 12);
     }
 
     function testGetPublicationNPC() public {
-        vm.prank(npc);
+        vm.prank(npc1);
         npcPublication.registerPublication(
-            artist,
+            500,
             1,
             1,
             1,
             AutographLibrary.LensType.Autograph
         );
 
-        assertEq(npcPublication.getPublicationNPC(1, 1), npc);
+        assertEq(npcPublication.getPublicationNPC(1, 1), npc1);
     }
 
     function createInitialGalleryAndCollections()
@@ -239,13 +240,35 @@ contract NPCPublicationTest is Test {
         collectionTypes[2] = AutographLibrary.AutographType.NFT;
         collectionTypes[3] = AutographLibrary.AutographType.Shirt;
 
+        string[][] memory languages = new string[][](4);
+        languages[0] = new string[](1);
+        languages[0][0] = "he";
+        languages[1] = new string[](1);
+        languages[1][0] = "br";
+        languages[2] = new string[](1);
+        languages[2][0] = "ar";
+        languages[3] = new string[](1);
+        languages[3][0] = "es";
+
+        address[][] memory npcs = new address[][](4);
+        npcs[0] = new address[](1);
+        npcs[0][0] = npc1;
+        npcs[1] = new address[](1);
+        npcs[1][0] = npc1;
+        npcs[2] = new address[](1);
+        npcs[2][0] = npc1;
+        npcs[3] = new address[](1);
+        npcs[3][0] = npc1;
+
         AutographLibrary.CollectionInit memory collectionInit = AutographLibrary
             .CollectionInit({
                 uris: uris,
                 amounts: amounts,
                 prices: prices,
                 acceptedTokens: acceptedTokens,
-                collectionTypes: collectionTypes
+                collectionTypes: collectionTypes,
+                npcs: npcs,
+                languages: languages
             });
 
         vm.prank(artist);
@@ -287,22 +310,29 @@ contract NPCPublicationTest is Test {
 
         (
             AutographLibrary.LensType _lensType,
-            address _artist,
+            uint256 _collectionId,
             uint8 _page,
             uint256 _profileId
-        ) = npcPublication.getPublicationPredictByNPC(npc);
-        vm.prank(npc);
-        npcPublication.registerPublication(_artist, 500, 134, _page, _lensType);
+        ) = npcPublication.getPublicationPredictByNPC(npc1);
+        vm.prank(npc1);
+        npcPublication.registerPublication(
+            _collectionId,
+            500,
+            134,
+            _page,
+            _lensType
+        );
+    
 
         (
             AutographLibrary.LensType _lensTypeDos,
-            address _artistDos,
+            uint256 _collectionIdDos,
             uint8 _pageDos,
             uint256 _profileIdDos
-        ) = npcPublication.getPublicationPredictByNPC(npc);
-        vm.prank(npc);
+        ) = npcPublication.getPublicationPredictByNPC(npc1);
+        vm.prank(npc1);
         npcPublication.registerPublication(
-            _artistDos,
+            _collectionIdDos,
             230,
             121,
             _pageDos,
@@ -311,13 +341,13 @@ contract NPCPublicationTest is Test {
 
         (
             AutographLibrary.LensType _lensTypeTres,
-            address _artistTres,
+            uint256 _collectionIdTres,
             uint8 _pageTres,
             uint256 _profileIdTres
-        ) = npcPublication.getPublicationPredictByNPC(npc);
-        vm.prank(npc);
+        ) = npcPublication.getPublicationPredictByNPC(npc1);
+        vm.prank(npc1);
         npcPublication.registerPublication(
-            _artistTres,
+            _collectionIdTres,
             230,
             121,
             _pageTres,
@@ -326,13 +356,13 @@ contract NPCPublicationTest is Test {
 
         (
             AutographLibrary.LensType _lensTypeCuatro,
-            address _artistCuatro,
+            uint256 _collectionIdCuatro,
             uint8 _pageCuatro,
             uint256 _profileIdCuatro
-        ) = npcPublication.getPublicationPredictByNPC(npc);
-        vm.prank(npc);
+        ) = npcPublication.getPublicationPredictByNPC(npc1);
+        vm.prank(npc1);
         npcPublication.registerPublication(
-            _artistCuatro,
+            _collectionIdCuatro,
             230,
             121,
             _pageCuatro,
@@ -341,13 +371,13 @@ contract NPCPublicationTest is Test {
 
         (
             AutographLibrary.LensType _lensTypeCinco,
-            address _artistCinco,
+            uint256 _collectionIdCinco,
             uint8 _pageCinco,
             uint256 _profileIdCinco
-        ) = npcPublication.getPublicationPredictByNPC(npc);
-        vm.prank(npc);
+        ) = npcPublication.getPublicationPredictByNPC(npc1);
+        vm.prank(npc1);
         npcPublication.registerPublication(
-            _artistCinco,
+            _collectionIdCinco,
             230,
             121,
             _pageCinco,
@@ -356,17 +386,20 @@ contract NPCPublicationTest is Test {
 
         (
             AutographLibrary.LensType _lensTypeSeis,
-            address _artistSeis,
+            uint256 _collectionIdSeis,
             uint8 _pageSeis,
             uint256 _profileIdSeis
-        ) = npcPublication.getPublicationPredictByNPC(npc);
-        vm.prank(npc);
+        ) = npcPublication.getPublicationPredictByNPC(npc1);
+        vm.prank(npc1);
         npcPublication.registerPublication(
-            _artistSeis,
+            _collectionIdSeis,
             230,
             121,
             _pageSeis,
             _lensTypeSeis
         );
+
+  
+
     }
 }
