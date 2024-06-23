@@ -64,7 +64,7 @@ contract AutographDeployScript is Script {
             "NPCP",
             "NPC Publication",
             address(accessControl),
-            address(autographCollection)
+            address(autographData)
         );
 
         accessControl.setFulfiller(fulfiller);

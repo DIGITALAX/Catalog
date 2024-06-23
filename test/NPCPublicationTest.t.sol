@@ -322,7 +322,6 @@ contract NPCPublicationTest is Test {
             _page,
             _lensType
         );
-    
 
         (
             AutographLibrary.LensType _lensTypeDos,
@@ -398,8 +397,5 @@ contract NPCPublicationTest is Test {
             _pageSeis,
             _lensTypeSeis
         );
-
-  
-
     }
 }

@@ -112,14 +112,11 @@ contract AutographData {
         private _collections;
     mapping(uint16 => uint256[]) private _galleryCollections;
     mapping(address => uint16[]) private _designerGallery;
-    mapping(uint16 => bool) private _galleryEditable;
     mapping(uint256 => mapping(uint256 => uint256))
         private _publicationCollection;
-    mapping(uint256 => mapping(uint256 => uint16)) private _publicationGallery;
     mapping(uint16 => uint256) private _collectionCount;
     mapping(uint256 => uint16) private _collectionGallery;
     mapping(uint256 => mapping(address => bool)) private _collectionCurrency;
-    mapping(address => uint256[]) private _artistCollectionsAvailable;
     mapping(address => uint256[]) private _buyerToOrders;
     mapping(uint256 => AutographLibrary.Order) private _orders;
     mapping(address => uint256[]) private _npcToCollection;
@@ -169,7 +166,6 @@ contract AutographData {
     ) external OnlyOpenActionOrCollection OnlyDesigner(_designer) {
         _galleryCounter++;
         _designerGallery[_designer].push(_galleryCounter);
-        _galleryEditable[_galleryCounter] = true;
         for (uint8 i = 0; i < _colls.amounts.length; i++) {
             _collectionCounter++;
             _collections[_galleryCounter][_collectionCounter]
@@ -201,8 +197,6 @@ contract AutographData {
                 _nftMix.push(_collectionCounter);
             }
 
-            _artistCollectionsAvailable[_designer].push(_collectionCounter);
-
             for (uint8 k = 0; k < _colls.acceptedTokens[i].length; k++) {
                 _collectionCurrency[_collectionCounter][
                     _colls.acceptedTokens[i][k]
@@ -214,7 +208,7 @@ contract AutographData {
                 _collectionToNPCs[_collectionCounter].push(_colls.npcs[i][k]);
             }
         }
-      
+
         _collectionCount[_galleryCounter] = _colls.amounts.length;
 
         uint[] memory _collectionCounts = new uint[](_colls.amounts.length);
@@ -254,7 +248,6 @@ contract AutographData {
             if (_collections[_galleryCounter][_collectionCounter].amount > 2) {
                 _nftMix.push(_collectionCounter);
             }
-            _artistCollectionsAvailable[_designer].push(_collectionCounter);
 
             for (uint8 k = 0; k < _colls.acceptedTokens[i].length; k++) {
                 _collectionCurrency[_collectionCounter][
@@ -291,7 +284,6 @@ contract AutographData {
         _collections[_galleryId][_collectionId].profileIds.push(_profileId);
 
         _publicationCollection[_profileId][_pubId] = _collectionId;
-        _publicationGallery[_profileId][_pubId] = _galleryId;
 
         emit PublicationConnected(
             _pubId,
@@ -324,7 +316,6 @@ contract AutographData {
 
             for (uint16 j = 0; j < _profs.length; j++) {
                 delete _publicationCollection[_profs[j]][_coll.pubIds[j]];
-                delete _publicationGallery[_profs[j]][_coll.pubIds[j]];
             }
 
             for (uint8 k = 0; k < _coll.acceptedTokens.length; k++) {
@@ -333,40 +324,38 @@ contract AutographData {
                 ];
             }
 
-            uint256[] storage _dCols = _artistCollectionsAvailable[_designer];
-
-            for (uint8 k = 0; k < _dCols.length; k++) {
-                if (_dCols[k] == _coll.collectionId) {
-                    _dCols[k] = _dCols[_dCols.length - 1];
-                    _dCols.pop();
-                    return;
-                }
-            }
-
-             for (uint8 k = 0; k < _collectionToNPCs[_coll.collectionId].length; k++) {
             for (
-                uint8 j = 0;
-                j <
-                _npcToCollection[_collectionToNPCs[_coll.collectionId][k]].length;
-                j++
+                uint8 k = 0;
+                k < _collectionToNPCs[_coll.collectionId].length;
+                k++
             ) {
-                if (
-                    _npcToCollection[_collectionToNPCs[_coll.collectionId][k]][j] ==
-                    _coll.collectionId
+                for (
+                    uint8 j = 0;
+                    j <
+                    _npcToCollection[_collectionToNPCs[_coll.collectionId][k]]
+                        .length;
+                    j++
                 ) {
-                    uint256 lastIndex = _npcToCollection[
-                        _collectionToNPCs[_coll.collectionId][k]
-                    ].length - 1;
-                    _npcToCollection[_collectionToNPCs[_coll.collectionId][k]][
-                        j
-                    ] = _npcToCollection[_collectionToNPCs[_coll.collectionId][k]][
-                        lastIndex
-                    ];
-                    _npcToCollection[_collectionToNPCs[_coll.collectionId][k]].pop();
-                    return;
+                    if (
+                        _npcToCollection[
+                            _collectionToNPCs[_coll.collectionId][k]
+                        ][j] == _coll.collectionId
+                    ) {
+                        uint256 lastIndex = _npcToCollection[
+                            _collectionToNPCs[_coll.collectionId][k]
+                        ].length - 1;
+                        _npcToCollection[
+                            _collectionToNPCs[_coll.collectionId][k]
+                        ][j] = _npcToCollection[
+                            _collectionToNPCs[_coll.collectionId][k]
+                        ][lastIndex];
+                        _npcToCollection[
+                            _collectionToNPCs[_coll.collectionId][k]
+                        ].pop();
+                        return;
+                    }
                 }
             }
-        }
 
             delete _collectionGallery[_coll.collectionId];
 
@@ -384,7 +373,6 @@ contract AutographData {
         }
 
         delete _collectionCount[_galleryId];
-        delete _galleryEditable[_galleryId];
         delete _galleryCollections[_galleryId];
 
         emit GalleryDeleted(_designer, _galleryId);
@@ -414,22 +402,6 @@ contract AutographData {
             _collectionId,
             _galleryId
         );
-
-        for (
-            uint16 i = 0;
-            i < _artistCollectionsAvailable[_designer].length;
-            i++
-        ) {
-            if (_artistCollectionsAvailable[_designer][i] == _collectionId) {
-                _artistCollectionsAvailable[_designer][
-                    i
-                ] = _artistCollectionsAvailable[_designer][
-                    _artistCollectionsAvailable[_designer].length - 1
-                ];
-                _artistCollectionsAvailable[_designer].pop();
-                break;
-            }
-        }
 
         uint256[] memory _profs = _collections[_galleryId][_collectionId]
             .profileIds;
@@ -502,17 +474,12 @@ contract AutographData {
     function setMintedTokens(
         uint256[] memory _tokenIds,
         uint256[] memory _collectionIds,
-        uint16[] memory _galleryIds,
-        uint8 _amount
+        uint16[] memory _galleryIds
     ) external OnlyCollection {
         for (uint8 i = 0; i < _tokenIds.length; i++) {
             _collections[_galleryIds[i]][_collectionIds[i]].mintedTokenIds.push(
                     _tokenIds[i]
                 );
-
-            if (!_galleryEditable[_galleryIds[i]]) {
-                _galleryEditable[_galleryIds[i]] = false;
-            }
 
             if (
                 _collections[_galleryIds[i]][_collectionIds[i]]
@@ -537,39 +504,6 @@ contract AutographData {
                             _nftMix.pop();
                             return;
                         }
-                    }
-                }
-
-                address _designer = getCollectionDesignerByGalleryId(
-                    _collectionIds[i],
-                    _galleryIds[i]
-                );
-
-                for (
-                    uint16 k = 0;
-                    k < _artistCollectionsAvailable[_designer].length;
-                    k++
-                ) {
-                    if (
-                        _artistCollectionsAvailable[_designer][k] ==
-                        _collectionIds[i] &&
-                        _amount +
-                            getMintedTokenIdsByGalleryId(
-                                _collectionIds[i],
-                                _galleryIds[i]
-                            ).length >=
-                        getCollectionAmountByGalleryId(
-                            _collectionIds[i],
-                            _galleryIds[i]
-                        )
-                    ) {
-                        _artistCollectionsAvailable[_designer][
-                            k
-                        ] = _artistCollectionsAvailable[_designer][
-                            _artistCollectionsAvailable[_designer].length - 1
-                        ];
-                        _artistCollectionsAvailable[_designer].pop();
-                        break;
                     }
                 }
             }
@@ -681,10 +615,6 @@ contract AutographData {
         return _designerGallery[_designer].length;
     }
 
-    function getGalleryEditable(uint16 _galleryId) public view returns (bool) {
-        return _galleryEditable[_galleryId];
-    }
-
     function getCollectionDesignerByGalleryId(
         uint256 _collectionId,
         uint16 _galleryId
@@ -760,13 +690,6 @@ contract AutographData {
         uint256 _pubId
     ) public view returns (uint256) {
         return _publicationCollection[_profileId][_pubId];
-    }
-
-    function getGalleryByPublication(
-        uint256 _profileId,
-        uint256 _pubId
-    ) public view returns (uint16) {
-        return _publicationGallery[_profileId][_pubId];
     }
 
     function getMintedTokenIdsByGalleryId(
@@ -889,12 +812,6 @@ contract AutographData {
 
     function getNFTMix() public view returns (uint256[] memory) {
         return _nftMix;
-    }
-
-    function getArtistCollectionsAvailable(
-        address _designer
-    ) public view returns (uint256[] memory) {
-        return _artistCollectionsAvailable[_designer];
     }
 
     function getCollectionCounter() public view returns (uint256) {

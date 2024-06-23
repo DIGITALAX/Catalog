@@ -345,10 +345,6 @@ contract AutographDataTest is Test {
         assertEq(autographData.getGalleryCollections(1), collsExpected);
         assertEq(autographData.getCollectionGallery(1), 1);
         assertEq(autographData.getCollectionGallery(3), 1);
-        assertEq(
-            autographData.getArtistCollectionsAvailable(designer),
-            collsExpected
-        );
         assertEq(autographData.getMintedTokenIdsByGalleryId(1, 1).length, 0);
     }
 
@@ -399,8 +395,6 @@ contract AutographDataTest is Test {
             dataTwo
         );
 
-        assertEq(autographData.getGalleryByPublication(900, 450), 1);
-        assertEq(autographData.getGalleryByPublication(900, 1543), 1);
         assertEq(autographData.getCollectionByPublication(900, 450), 1);
         assertEq(autographData.getCollectionByPublication(900, 1543), 4);
         assertEq(
@@ -728,15 +722,6 @@ contract AutographDataTest is Test {
         vm.startPrank(hub);
         autographOpenAction.processPublicationAction(process);
 
-        assertEq(
-            keccak256(
-                abi.encodePacked(
-                    (autographData.getArtistCollectionsAvailable(designer))
-                )
-            ),
-            keccak256(abi.encodePacked(([1, 4, 3])))
-        );
-
         try autographOpenAction.processPublicationAction(process) {
             fail();
         } catch (bytes memory lowLevelData) {
@@ -792,15 +777,6 @@ contract AutographDataTest is Test {
         });
         vm.startPrank(hub);
         autographOpenAction.processPublicationAction(process);
-
-        assertEq(
-            keccak256(
-                abi.encodePacked(
-                    (autographData.getArtistCollectionsAvailable(designer))
-                )
-            ),
-            keccak256(abi.encodePacked(([1, 2, 3, 4])))
-        );
     }
 
     function testCatalogCollectionPurchase() public {
