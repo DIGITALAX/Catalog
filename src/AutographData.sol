@@ -728,6 +728,18 @@ contract AutographData {
         return _collectionGallery[_collectionId];
     }
 
+    function getDesignerProfileId(
+        address _designer
+    ) public view returns (uint256) {
+        uint16 _gId = _designerGallery[_designer][0];
+        uint256 _cId = _galleryCollections[_gId][0];
+        if (_collections[_gId][_cId].profileIds.length > 0) {
+            return _collections[_gId][_cId].profileIds[0];
+        } else {
+            return 0;
+        }
+    }
+
     function getBuyerOrderIds(
         address _buyer
     ) public view returns (uint256[] memory) {

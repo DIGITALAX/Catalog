@@ -15,7 +15,9 @@ contract AutographLibrary {
         Catalog,
         Comment,
         Publication,
-        Autograph
+        Autograph,
+        Quote,
+        Mirror
     }
 
     struct Publication {
