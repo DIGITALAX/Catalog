@@ -170,11 +170,7 @@ export function handleGalleryCreated(event: GalleryCreatedEvent): void {
     let coleccion = new Collection(
       Bytes.fromByteArray(ByteArray.fromBigInt(entity.collectionIds[i]))
     );
-    if (coleccion.amount < 3) {
-      coleccion.mix = false;
-    } else {
-      coleccion.mix = true;
-    }
+
     coleccion.collectionId = entity.collectionIds[i];
     coleccion.acceptedTokens = datos
       .getCollectionAcceptedTokensByGalleryId(
@@ -207,7 +203,11 @@ export function handleGalleryCreated(event: GalleryCreatedEvent): void {
       entity.collectionIds[i],
       entity.galleryId
     );
-
+    if (coleccion.amount < 3) {
+      coleccion.mix = false;
+    } else {
+      coleccion.mix = true;
+    }
     let ipfsHash = coleccion.uri.split("/").pop();
     if (ipfsHash != null) {
       coleccion.collectionMetadata = ipfsHash;
@@ -291,11 +291,6 @@ export function handleGalleryUpdated(event: GalleryUpdatedEvent): void {
 
       colecciones.push(coleccion.id);
 
-      if (coleccion.amount < 3) {
-        coleccion.mix = false;
-      } else {
-        coleccion.mix = true;
-      }
 
       coleccion.collectionId = entity.collectionIds[i];
       coleccion.acceptedTokens = datos
@@ -330,6 +325,11 @@ export function handleGalleryUpdated(event: GalleryUpdatedEvent): void {
         entity.galleryId
       );
 
+      if (coleccion.amount < 3) {
+        coleccion.mix = false;
+      } else {
+        coleccion.mix = true;
+      }
       let ipfsHash = coleccion.uri.split("/").pop();
       if (ipfsHash != null) {
         coleccion.collectionMetadata = ipfsHash;

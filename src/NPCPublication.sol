@@ -117,6 +117,7 @@ contract NPCPublication {
         AutographLibrary.LensType[] memory _lensTypes;
 
         if (_activated) {
+            _lensTypes = new AutographLibrary.LensType[](6);
             _lensTypes[0] = AutographLibrary.LensType.Catalog;
             _lensTypes[1] = AutographLibrary.LensType.Comment;
             _lensTypes[2] = AutographLibrary.LensType.Publication;
@@ -124,19 +125,25 @@ contract NPCPublication {
             _lensTypes[4] = AutographLibrary.LensType.Quote;
             _lensTypes[5] = AutographLibrary.LensType.Mirror;
         } else {
-            return (AutographLibrary.LensType.Publication, 0, 0, 0);
+            _lensTypes = new AutographLibrary.LensType[](4);
+            _lensTypes[0] = AutographLibrary.LensType.Publication;
+            _lensTypes[1] = AutographLibrary.LensType.Comment;
+            _lensTypes[2] = AutographLibrary.LensType.Mirror;
+            _lensTypes[3] = AutographLibrary.LensType.Quote;
         }
-
-        for (uint8 i = 0; i < 4; i++) {
+  
+        for (uint8 i = 0; i < _lensTypes.length; i++) {
             uint8 n = uint8(
-                uint256(keccak256(abi.encodePacked(block.timestamp, i))) % 4
+                uint256(keccak256(abi.encodePacked(block.timestamp, i))) %
+                    _lensTypes.length
             );
             AutographLibrary.LensType temp = _lensTypes[i];
             _lensTypes[i] = _lensTypes[n];
             _lensTypes[n] = temp;
         }
 
-        for (uint8 i = 0; i < 4; i++) {
+
+        for (uint8 i = 0; i < _lensTypes.length; i++) {
             AutographLibrary.LensType _lensType = _lensTypes[i];
             uint256 _count = _lensTypeByNPC[_npcWallet][_lensType];
 
@@ -150,7 +157,6 @@ contract NPCPublication {
                 _minLensType2 = _lensType;
             }
         }
-
         AutographLibrary.LensType chosenLensType;
         if (_callCount % 2 == 0) {
             chosenLensType = _minLensType1;
@@ -158,7 +164,14 @@ contract NPCPublication {
             chosenLensType = _minLensType2;
         }
         _callCount++;
-        if (chosenLensType == AutographLibrary.LensType.Publication) {
+        if (
+            chosenLensType == AutographLibrary.LensType.Publication ||
+            !_activated ||
+            (_callCount % 6 == 0 &&
+                (chosenLensType == AutographLibrary.LensType.Comment ||
+                    chosenLensType == AutographLibrary.LensType.Quote ||
+                    chosenLensType == AutographLibrary.LensType.Mirror))
+        ) {
             return (chosenLensType, 0, 0, 0);
         } else if (chosenLensType == AutographLibrary.LensType.Catalog) {
             uint8 _pageNumber = _findLeastPublishedPage(_npcWallet);
