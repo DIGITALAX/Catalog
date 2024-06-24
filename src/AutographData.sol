@@ -308,7 +308,7 @@ contract AutographData {
                 if (_nftMix[k] == _coll.collectionId) {
                     _nftMix[k] = _nftMix[_nftMix.length - 1];
                     _nftMix.pop();
-                    return;
+                    break;
                 }
             }
 
@@ -352,7 +352,7 @@ contract AutographData {
                         _npcToCollection[
                             _collectionToNPCs[_coll.collectionId][k]
                         ].pop();
-                        return;
+                        break;
                     }
                 }
             }
@@ -398,11 +398,6 @@ contract AutographData {
             revert CollectionNotFound();
         }
 
-        address _designer = getCollectionDesignerByGalleryId(
-            _collectionId,
-            _galleryId
-        );
-
         uint256[] memory _profs = _collections[_galleryId][_collectionId]
             .profileIds;
 
@@ -432,7 +427,7 @@ contract AutographData {
                         lastIndex
                     ];
                     _npcToCollection[_collectionToNPCs[_collectionId][k]].pop();
-                    return;
+                    break;
                 }
             }
         }
@@ -458,7 +453,7 @@ contract AutographData {
             if (_nftMix[i] == _collectionId) {
                 _nftMix[i] = _nftMix[_nftMix.length - 1];
                 _nftMix.pop();
-                return;
+                break;
             }
         }
 
@@ -502,7 +497,7 @@ contract AutographData {
                         ) {
                             _nftMix[k] = _nftMix[_nftMix.length - 1];
                             _nftMix.pop();
-                            return;
+                            break;
                         }
                     }
                 }
