@@ -1,948 +1,981 @@
 [
   {
+    "type": "constructor",
     "inputs": [
-      { "internalType": "string", "name": "_symbol", "type": "string" },
-      { "internalType": "string", "name": "_name", "type": "string" },
+      { "name": "_symbol", "type": "string", "internalType": "string" },
+      { "name": "_name", "type": "string", "internalType": "string" },
       {
-        "internalType": "address",
         "name": "_autographAccessControl",
-        "type": "address"
+        "type": "address",
+        "internalType": "address"
       },
       {
-        "internalType": "address",
         "name": "_autographCollection",
-        "type": "address"
+        "type": "address",
+        "internalType": "address"
       },
       {
-        "internalType": "address",
         "name": "_autographMarket",
-        "type": "address"
+        "type": "address",
+        "internalType": "address"
       },
-      { "internalType": "address", "name": "_autographNFT", "type": "address" }
+      { "name": "_autographNFT", "type": "address", "internalType": "address" }
     ],
-    "stateMutability": "nonpayable",
-    "type": "constructor"
-  },
-  { "inputs": [], "name": "CollectionNotFound", "type": "error" },
-  { "inputs": [], "name": "InvalidAddress", "type": "error" },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": false,
-        "internalType": "string",
-        "name": "uri",
-        "type": "string"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "amount",
-        "type": "uint256"
-      }
-    ],
-    "name": "AutographCreated",
-    "type": "event"
+    "stateMutability": "nonpayable"
   },
   {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": false,
-        "internalType": "uint8",
-        "name": "amount",
-        "type": "uint8"
-      }
-    ],
-    "name": "AutographTokensMinted",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "collectionId",
-        "type": "uint256"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint16",
-        "name": "galleryId",
-        "type": "uint16"
-      }
-    ],
-    "name": "CollectionDeleted",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": false,
-        "internalType": "uint256[]",
-        "name": "tokenIds",
-        "type": "uint256[]"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256[]",
-        "name": "collectionIds",
-        "type": "uint256[]"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint16[]",
-        "name": "galleryIds",
-        "type": "uint16[]"
-      }
-    ],
-    "name": "CollectionTokenMinted",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": false,
-        "internalType": "uint256[]",
-        "name": "collectionIds",
-        "type": "uint256[]"
-      },
-      {
-        "indexed": false,
-        "internalType": "address",
-        "name": "designer",
-        "type": "address"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint16",
-        "name": "galleryId",
-        "type": "uint16"
-      }
-    ],
-    "name": "GalleryCreated",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": false,
-        "internalType": "address",
-        "name": "designer",
-        "type": "address"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint16",
-        "name": "galleryId",
-        "type": "uint16"
-      }
-    ],
-    "name": "GalleryDeleted",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": false,
-        "internalType": "uint256[]",
-        "name": "collectionIds",
-        "type": "uint256[]"
-      },
-      {
-        "indexed": false,
-        "internalType": "address",
-        "name": "designer",
-        "type": "address"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint16",
-        "name": "galleryId",
-        "type": "uint16"
-      }
-    ],
-    "name": "GalleryUpdated",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": false,
-        "internalType": "enum AutographLibrary.AutographType[]",
-        "name": "subOrderTypes",
-        "type": "uint8[]"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "total",
-        "type": "uint256"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "orderId",
-        "type": "uint256"
-      }
-    ],
-    "name": "OrderCreated",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "pubId",
-        "type": "uint256"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "profileId",
-        "type": "uint256"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "collectionId",
-        "type": "uint256"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint16",
-        "name": "galleryId",
-        "type": "uint16"
-      }
-    ],
-    "name": "PublicationConnected",
-    "type": "event"
-  },
-  {
-    "inputs": [
-      {
-        "components": [
-          {
-            "internalType": "address[][]",
-            "name": "acceptedTokens",
-            "type": "address[][]"
-          },
-          {
-            "internalType": "uint256[]",
-            "name": "prices",
-            "type": "uint256[]"
-          },
-          { "internalType": "string[]", "name": "uris", "type": "string[]" },
-          { "internalType": "uint8[]", "name": "amounts", "type": "uint8[]" },
-          {
-            "internalType": "enum AutographLibrary.AutographType[]",
-            "name": "collectionTypes",
-            "type": "uint8[]"
-          }
-        ],
-        "internalType": "struct AutographLibrary.CollectionInit",
-        "name": "_colls",
-        "type": "tuple"
-      },
-      { "internalType": "address", "name": "_designer", "type": "address" },
-      { "internalType": "uint16", "name": "_galleryId", "type": "uint16" }
-    ],
+    "type": "function",
     "name": "addCollections",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "autographAccessControl",
-    "outputs": [
-      {
-        "internalType": "contract AutographAccessControl",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "autographCollection",
-    "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "autographMarket",
-    "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "autographNFT",
-    "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      { "internalType": "uint256", "name": "_pubId", "type": "uint256" },
-      { "internalType": "uint256", "name": "_profileId", "type": "uint256" },
-      { "internalType": "uint256", "name": "_collectionId", "type": "uint256" },
-      { "internalType": "uint16", "name": "_galleryId", "type": "uint16" }
-    ],
-    "name": "connectPublication",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
     "inputs": [
       {
-        "components": [
-          { "internalType": "string[]", "name": "pages", "type": "string[]" },
-          {
-            "internalType": "address[]",
-            "name": "acceptedTokens",
-            "type": "address[]"
-          },
-          { "internalType": "string", "name": "uri", "type": "string" },
-          { "internalType": "address", "name": "designer", "type": "address" },
-          { "internalType": "uint256", "name": "price", "type": "uint256" },
-          { "internalType": "uint256", "name": "pubId", "type": "uint256" },
-          { "internalType": "uint256", "name": "profileId", "type": "uint256" },
-          { "internalType": "uint16", "name": "amount", "type": "uint16" },
-          { "internalType": "uint8", "name": "pageCount", "type": "uint8" }
-        ],
-        "internalType": "struct AutographLibrary.AutographInit",
-        "name": "_auto",
-        "type": "tuple"
-      }
-    ],
-    "name": "createAutograph",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "components": [
-          {
-            "internalType": "address[][]",
-            "name": "acceptedTokens",
-            "type": "address[][]"
-          },
-          {
-            "internalType": "uint256[]",
-            "name": "prices",
-            "type": "uint256[]"
-          },
-          { "internalType": "string[]", "name": "uris", "type": "string[]" },
-          { "internalType": "uint8[]", "name": "amounts", "type": "uint8[]" },
-          {
-            "internalType": "enum AutographLibrary.AutographType[]",
-            "name": "collectionTypes",
-            "type": "uint8[]"
-          }
-        ],
-        "internalType": "struct AutographLibrary.CollectionInit",
         "name": "_colls",
-        "type": "tuple"
+        "type": "tuple",
+        "internalType": "struct AutographLibrary.CollectionInit",
+        "components": [
+          {
+            "name": "languages",
+            "type": "string[][]",
+            "internalType": "string[][]"
+          },
+          {
+            "name": "npcs",
+            "type": "address[][]",
+            "internalType": "address[][]"
+          },
+          {
+            "name": "acceptedTokens",
+            "type": "address[][]",
+            "internalType": "address[][]"
+          },
+          {
+            "name": "prices",
+            "type": "uint256[]",
+            "internalType": "uint256[]"
+          },
+          { "name": "uris", "type": "string[]", "internalType": "string[]" },
+          { "name": "amounts", "type": "uint8[]", "internalType": "uint8[]" },
+          {
+            "name": "collectionTypes",
+            "type": "uint8[]",
+            "internalType": "enum AutographLibrary.AutographType[]"
+          }
+        ]
       },
-      { "internalType": "address", "name": "_designer", "type": "address" }
+      { "name": "_designer", "type": "address", "internalType": "address" },
+      { "name": "_galleryId", "type": "uint16", "internalType": "uint16" }
     ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "autographAccessControl",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "contract AutographAccessControl"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "autographCollection",
+    "inputs": [],
+    "outputs": [{ "name": "", "type": "address", "internalType": "address" }],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "autographMarket",
+    "inputs": [],
+    "outputs": [{ "name": "", "type": "address", "internalType": "address" }],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "autographNFT",
+    "inputs": [],
+    "outputs": [{ "name": "", "type": "address", "internalType": "address" }],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "connectPublication",
+    "inputs": [
+      { "name": "_pubId", "type": "uint256", "internalType": "uint256" },
+      { "name": "_profileId", "type": "uint256", "internalType": "uint256" },
+      { "name": "_collectionId", "type": "uint256", "internalType": "uint256" },
+      { "name": "_galleryId", "type": "uint16", "internalType": "uint16" }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "createAutograph",
+    "inputs": [
+      {
+        "name": "_auto",
+        "type": "tuple",
+        "internalType": "struct AutographLibrary.AutographInit",
+        "components": [
+          { "name": "pages", "type": "string[]", "internalType": "string[]" },
+          {
+            "name": "acceptedTokens",
+            "type": "address[]",
+            "internalType": "address[]"
+          },
+          { "name": "uri", "type": "string", "internalType": "string" },
+          { "name": "designer", "type": "address", "internalType": "address" },
+          { "name": "price", "type": "uint256", "internalType": "uint256" },
+          { "name": "pubId", "type": "uint256", "internalType": "uint256" },
+          { "name": "profileId", "type": "uint256", "internalType": "uint256" },
+          { "name": "amount", "type": "uint16", "internalType": "uint16" },
+          { "name": "pageCount", "type": "uint8", "internalType": "uint8" }
+        ]
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
     "name": "createGallery",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
     "inputs": [
       {
-        "internalType": "uint256[][]",
-        "name": "_mintedTokenIds",
-        "type": "uint256[][]"
+        "name": "_colls",
+        "type": "tuple",
+        "internalType": "struct AutographLibrary.CollectionInit",
+        "components": [
+          {
+            "name": "languages",
+            "type": "string[][]",
+            "internalType": "string[][]"
+          },
+          {
+            "name": "npcs",
+            "type": "address[][]",
+            "internalType": "address[][]"
+          },
+          {
+            "name": "acceptedTokens",
+            "type": "address[][]",
+            "internalType": "address[][]"
+          },
+          {
+            "name": "prices",
+            "type": "uint256[]",
+            "internalType": "uint256[]"
+          },
+          { "name": "uris", "type": "string[]", "internalType": "string[]" },
+          { "name": "amounts", "type": "uint8[]", "internalType": "uint8[]" },
+          {
+            "name": "collectionTypes",
+            "type": "uint8[]",
+            "internalType": "enum AutographLibrary.AutographType[]"
+          }
+        ]
       },
-      {
-        "internalType": "uint256[][]",
-        "name": "_collectionIds",
-        "type": "uint256[][]"
-      },
-      {
-        "internalType": "address[]",
-        "name": "_currencies",
-        "type": "address[]"
-      },
-      { "internalType": "uint8[]", "name": "_amounts", "type": "uint8[]" },
-      {
-        "internalType": "uint256[]",
-        "name": "_parentIds",
-        "type": "uint256[]"
-      },
-      {
-        "internalType": "uint256[]",
-        "name": "_subTotals",
-        "type": "uint256[]"
-      },
-      {
-        "internalType": "enum AutographLibrary.AutographType[]",
-        "name": "_subOrderTypes",
-        "type": "uint8[]"
-      },
-      { "internalType": "string", "name": "_fulfillment", "type": "string" },
-      { "internalType": "address", "name": "_buyer", "type": "address" },
-      { "internalType": "uint256", "name": "_total", "type": "uint256" }
+      { "name": "_designer", "type": "address", "internalType": "address" }
     ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
     "name": "createOrder",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
     "inputs": [
-      { "internalType": "uint256", "name": "_collectionId", "type": "uint256" },
-      { "internalType": "uint16", "name": "_galleryId", "type": "uint16" }
-    ],
-    "name": "deleteCollection",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      { "internalType": "address", "name": "_designer", "type": "address" },
-      { "internalType": "uint16", "name": "_galleryId", "type": "uint16" }
-    ],
-    "name": "deleteGallery",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "getAllArtists",
-    "outputs": [
-      { "internalType": "address[]", "name": "", "type": "address[]" }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      { "internalType": "address", "name": "_designer", "type": "address" }
-    ],
-    "name": "getArtistCollectionsAvailable",
-    "outputs": [
-      { "internalType": "uint256[]", "name": "", "type": "uint256[]" }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "getAutographAcceptedTokens",
-    "outputs": [
-      { "internalType": "address[]", "name": "", "type": "address[]" }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "getAutographAmount",
-    "outputs": [{ "internalType": "uint16", "name": "", "type": "uint16" }],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      { "internalType": "address", "name": "_currency", "type": "address" },
-      { "internalType": "uint256", "name": "_collectionId", "type": "uint256" }
-    ],
-    "name": "getAutographCurrencyIsAccepted",
-    "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "getAutographDesigner",
-    "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "getAutographMinted",
-    "outputs": [{ "internalType": "uint16", "name": "", "type": "uint16" }],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      { "internalType": "uint256", "name": "_page", "type": "uint256" }
-    ],
-    "name": "getAutographPage",
-    "outputs": [{ "internalType": "string", "name": "", "type": "string" }],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "getAutographPageCount",
-    "outputs": [{ "internalType": "uint8", "name": "", "type": "uint8" }],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "getAutographPrice",
-    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "getAutographProfileId",
-    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "getAutographPubId",
-    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "getAutographURI",
-    "outputs": [{ "internalType": "string", "name": "", "type": "string" }],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      { "internalType": "address", "name": "_buyer", "type": "address" }
-    ],
-    "name": "getBuyerOrderIds",
-    "outputs": [
-      { "internalType": "uint256[]", "name": "", "type": "uint256[]" }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      { "internalType": "uint256", "name": "_collectionId", "type": "uint256" },
-      { "internalType": "uint16", "name": "_galleryId", "type": "uint16" }
-    ],
-    "name": "getCollectionAcceptedTokensByGalleryId",
-    "outputs": [
-      { "internalType": "address[]", "name": "", "type": "address[]" }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      { "internalType": "uint256", "name": "_collectionId", "type": "uint256" },
-      { "internalType": "uint16", "name": "_galleryId", "type": "uint16" }
-    ],
-    "name": "getCollectionAmountByGalleryId",
-    "outputs": [{ "internalType": "uint8", "name": "", "type": "uint8" }],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      { "internalType": "uint256", "name": "_profileId", "type": "uint256" },
-      { "internalType": "uint256", "name": "_pubId", "type": "uint256" }
-    ],
-    "name": "getCollectionByPublication",
-    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "getCollectionCounter",
-    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      { "internalType": "uint256", "name": "_collectionId", "type": "uint256" },
-      { "internalType": "uint16", "name": "_galleryId", "type": "uint16" }
-    ],
-    "name": "getCollectionDesignerByGalleryId",
-    "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      { "internalType": "uint256", "name": "_collectionId", "type": "uint256" }
-    ],
-    "name": "getCollectionGallery",
-    "outputs": [{ "internalType": "uint16", "name": "", "type": "uint16" }],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      { "internalType": "uint256", "name": "_collectionId", "type": "uint256" },
-      { "internalType": "uint16", "name": "_galleryId", "type": "uint16" }
-    ],
-    "name": "getCollectionPriceByGalleryId",
-    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      { "internalType": "uint256", "name": "_collectionId", "type": "uint256" },
-      { "internalType": "uint16", "name": "_galleryId", "type": "uint16" }
-    ],
-    "name": "getCollectionProfileIdsByGalleryId",
-    "outputs": [
-      { "internalType": "uint256[]", "name": "", "type": "uint256[]" }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      { "internalType": "uint256", "name": "_collectionId", "type": "uint256" },
-      { "internalType": "uint16", "name": "_galleryId", "type": "uint16" }
-    ],
-    "name": "getCollectionPubIdsByGalleryId",
-    "outputs": [
-      { "internalType": "uint256[]", "name": "", "type": "uint256[]" }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      { "internalType": "uint256", "name": "_collectionId", "type": "uint256" },
-      { "internalType": "uint16", "name": "_galleryId", "type": "uint16" }
-    ],
-    "name": "getCollectionTypeByGalleryId",
-    "outputs": [
       {
-        "internalType": "enum AutographLibrary.AutographType",
-        "name": "",
-        "type": "uint8"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      { "internalType": "uint256", "name": "_collectionId", "type": "uint256" },
-      { "internalType": "uint16", "name": "_galleryId", "type": "uint16" }
-    ],
-    "name": "getCollectionURIByGalleryId",
-    "outputs": [{ "internalType": "string", "name": "", "type": "string" }],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      { "internalType": "address", "name": "_designer", "type": "address" }
-    ],
-    "name": "getDesignerGalleries",
-    "outputs": [{ "internalType": "uint16[]", "name": "", "type": "uint16[]" }],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      { "internalType": "uint256", "name": "_profileId", "type": "uint256" },
-      { "internalType": "uint256", "name": "_pubId", "type": "uint256" }
-    ],
-    "name": "getGalleryByPublication",
-    "outputs": [{ "internalType": "uint16", "name": "", "type": "uint16" }],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      { "internalType": "uint16", "name": "_galleryId", "type": "uint16" }
-    ],
-    "name": "getGalleryCollectionCount",
-    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      { "internalType": "uint16", "name": "_galleryId", "type": "uint16" }
-    ],
-    "name": "getGalleryCollections",
-    "outputs": [
-      { "internalType": "uint256[]", "name": "", "type": "uint256[]" }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "getGalleryCounter",
-    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      { "internalType": "uint16", "name": "_galleryId", "type": "uint16" }
-    ],
-    "name": "getGalleryEditable",
-    "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      { "internalType": "address", "name": "_designer", "type": "address" }
-    ],
-    "name": "getGalleryLengthByDesigner",
-    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "getHoodieBase",
-    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      { "internalType": "uint256", "name": "_collectionId", "type": "uint256" },
-      { "internalType": "uint16", "name": "_galleryId", "type": "uint16" }
-    ],
-    "name": "getMintedTokenIdsByGalleryId",
-    "outputs": [
-      { "internalType": "uint256[]", "name": "", "type": "uint256[]" }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "getNFTMix",
-    "outputs": [
-      { "internalType": "uint256[]", "name": "", "type": "uint256[]" }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      { "internalType": "uint256", "name": "_orderId", "type": "uint256" }
-    ],
-    "name": "getOrderAmounts",
-    "outputs": [{ "internalType": "uint8[]", "name": "", "type": "uint8[]" }],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      { "internalType": "uint256", "name": "_orderId", "type": "uint256" }
-    ],
-    "name": "getOrderBuyer",
-    "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      { "internalType": "uint256", "name": "_orderId", "type": "uint256" }
-    ],
-    "name": "getOrderCollectionIds",
-    "outputs": [
-      { "internalType": "uint256[][]", "name": "", "type": "uint256[][]" }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "getOrderCounter",
-    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      { "internalType": "uint256", "name": "_orderId", "type": "uint256" }
-    ],
-    "name": "getOrderCurrencies",
-    "outputs": [
-      { "internalType": "address[]", "name": "", "type": "address[]" }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      { "internalType": "uint256", "name": "_orderId", "type": "uint256" }
-    ],
-    "name": "getOrderFulfillment",
-    "outputs": [{ "internalType": "string", "name": "", "type": "string" }],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      { "internalType": "uint256", "name": "_orderId", "type": "uint256" }
-    ],
-    "name": "getOrderMintedTokens",
-    "outputs": [
-      { "internalType": "uint256[][]", "name": "", "type": "uint256[][]" }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      { "internalType": "uint256", "name": "_orderId", "type": "uint256" }
-    ],
-    "name": "getOrderParentIds",
-    "outputs": [
-      { "internalType": "uint256[]", "name": "", "type": "uint256[]" }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      { "internalType": "uint256", "name": "_orderId", "type": "uint256" }
-    ],
-    "name": "getOrderSubTotals",
-    "outputs": [
-      { "internalType": "uint256[]", "name": "", "type": "uint256[]" }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      { "internalType": "uint256", "name": "_orderId", "type": "uint256" }
-    ],
-    "name": "getOrderSubTypes",
-    "outputs": [
-      {
-        "internalType": "enum AutographLibrary.AutographType[]",
-        "name": "",
-        "type": "uint8[]"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      { "internalType": "uint256", "name": "_orderId", "type": "uint256" }
-    ],
-    "name": "getOrderTotal",
-    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "getShirtBase",
-    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "getVig",
-    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "name",
-    "outputs": [{ "internalType": "string", "name": "", "type": "string" }],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      { "internalType": "uint256", "name": "_newBase", "type": "uint256" }
-    ],
-    "name": "setHoodieBase",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [{ "internalType": "uint8", "name": "_amount", "type": "uint8" }],
-    "name": "setMintedCatalog",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      { "internalType": "uint256[]", "name": "_tokenIds", "type": "uint256[]" },
-      {
-        "internalType": "uint256[]",
-        "name": "_collectionIds",
-        "type": "uint256[]"
+        "name": "_mintedTokenIds",
+        "type": "uint256[][]",
+        "internalType": "uint256[][]"
       },
-      { "internalType": "uint16[]", "name": "_galleryIds", "type": "uint16[]" },
-      { "internalType": "uint8", "name": "_amount", "type": "uint8" }
+      {
+        "name": "_collectionIds",
+        "type": "uint256[][]",
+        "internalType": "uint256[][]"
+      },
+      {
+        "name": "_currencies",
+        "type": "address[]",
+        "internalType": "address[]"
+      },
+      { "name": "_amounts", "type": "uint8[]", "internalType": "uint8[]" },
+      {
+        "name": "_parentIds",
+        "type": "uint256[]",
+        "internalType": "uint256[]"
+      },
+      {
+        "name": "_subTotals",
+        "type": "uint256[]",
+        "internalType": "uint256[]"
+      },
+      {
+        "name": "_subOrderTypes",
+        "type": "uint8[]",
+        "internalType": "enum AutographLibrary.AutographType[]"
+      },
+      { "name": "_fulfillment", "type": "string", "internalType": "string" },
+      { "name": "_buyer", "type": "address", "internalType": "address" },
+      { "name": "_total", "type": "uint256", "internalType": "uint256" }
     ],
-    "name": "setMintedTokens",
     "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
+    "stateMutability": "nonpayable"
   },
   {
+    "type": "function",
+    "name": "deleteCollection",
     "inputs": [
-      { "internalType": "uint256", "name": "_newBase", "type": "uint256" }
+      { "name": "_collectionId", "type": "uint256", "internalType": "uint256" },
+      { "name": "_galleryId", "type": "uint16", "internalType": "uint16" }
     ],
-    "name": "setShirtBase",
     "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
+    "stateMutability": "nonpayable"
   },
   {
+    "type": "function",
+    "name": "deleteGallery",
     "inputs": [
-      { "internalType": "uint256", "name": "_newVig", "type": "uint256" }
+      { "name": "_designer", "type": "address", "internalType": "address" },
+      { "name": "_galleryId", "type": "uint16", "internalType": "uint16" }
     ],
-    "name": "setVig",
     "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
+    "stateMutability": "nonpayable"
   },
   {
+    "type": "function",
+    "name": "getAutographAcceptedTokens",
     "inputs": [],
+    "outputs": [
+      { "name": "", "type": "address[]", "internalType": "address[]" }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getAutographAmount",
+    "inputs": [],
+    "outputs": [{ "name": "", "type": "uint16", "internalType": "uint16" }],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getAutographCurrencyIsAccepted",
+    "inputs": [
+      { "name": "_currency", "type": "address", "internalType": "address" },
+      { "name": "_collectionId", "type": "uint256", "internalType": "uint256" }
+    ],
+    "outputs": [{ "name": "", "type": "bool", "internalType": "bool" }],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getAutographDesigner",
+    "inputs": [],
+    "outputs": [{ "name": "", "type": "address", "internalType": "address" }],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getAutographMinted",
+    "inputs": [],
+    "outputs": [{ "name": "", "type": "uint16", "internalType": "uint16" }],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getAutographPage",
+    "inputs": [
+      { "name": "_page", "type": "uint256", "internalType": "uint256" }
+    ],
+    "outputs": [{ "name": "", "type": "string", "internalType": "string" }],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getAutographPageCount",
+    "inputs": [],
+    "outputs": [{ "name": "", "type": "uint8", "internalType": "uint8" }],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getAutographPrice",
+    "inputs": [],
+    "outputs": [{ "name": "", "type": "uint256", "internalType": "uint256" }],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getAutographProfileId",
+    "inputs": [],
+    "outputs": [{ "name": "", "type": "uint256", "internalType": "uint256" }],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getAutographPubId",
+    "inputs": [],
+    "outputs": [{ "name": "", "type": "uint256", "internalType": "uint256" }],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getAutographURI",
+    "inputs": [],
+    "outputs": [{ "name": "", "type": "string", "internalType": "string" }],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getBuyerOrderIds",
+    "inputs": [
+      { "name": "_buyer", "type": "address", "internalType": "address" }
+    ],
+    "outputs": [
+      { "name": "", "type": "uint256[]", "internalType": "uint256[]" }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getCollectionAcceptedTokensByGalleryId",
+    "inputs": [
+      { "name": "_collectionId", "type": "uint256", "internalType": "uint256" },
+      { "name": "_galleryId", "type": "uint16", "internalType": "uint16" }
+    ],
+    "outputs": [
+      { "name": "", "type": "address[]", "internalType": "address[]" }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getCollectionAmountByGalleryId",
+    "inputs": [
+      { "name": "_collectionId", "type": "uint256", "internalType": "uint256" },
+      { "name": "_galleryId", "type": "uint16", "internalType": "uint16" }
+    ],
+    "outputs": [{ "name": "", "type": "uint8", "internalType": "uint8" }],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getCollectionByPublication",
+    "inputs": [
+      { "name": "_profileId", "type": "uint256", "internalType": "uint256" },
+      { "name": "_pubId", "type": "uint256", "internalType": "uint256" }
+    ],
+    "outputs": [{ "name": "", "type": "uint256", "internalType": "uint256" }],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getCollectionCounter",
+    "inputs": [],
+    "outputs": [{ "name": "", "type": "uint256", "internalType": "uint256" }],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getCollectionDesignerByGalleryId",
+    "inputs": [
+      { "name": "_collectionId", "type": "uint256", "internalType": "uint256" },
+      { "name": "_galleryId", "type": "uint16", "internalType": "uint16" }
+    ],
+    "outputs": [{ "name": "", "type": "address", "internalType": "address" }],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getCollectionGallery",
+    "inputs": [
+      { "name": "_collectionId", "type": "uint256", "internalType": "uint256" }
+    ],
+    "outputs": [{ "name": "", "type": "uint16", "internalType": "uint16" }],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getCollectionLanguagesByGalleryId",
+    "inputs": [
+      { "name": "_collectionId", "type": "uint256", "internalType": "uint256" },
+      { "name": "_galleryId", "type": "uint16", "internalType": "uint16" }
+    ],
+    "outputs": [{ "name": "", "type": "string[]", "internalType": "string[]" }],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getCollectionNPCsByGalleryId",
+    "inputs": [
+      { "name": "_collectionId", "type": "uint256", "internalType": "uint256" },
+      { "name": "_galleryId", "type": "uint16", "internalType": "uint16" }
+    ],
+    "outputs": [
+      { "name": "", "type": "address[]", "internalType": "address[]" }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getCollectionPriceByGalleryId",
+    "inputs": [
+      { "name": "_collectionId", "type": "uint256", "internalType": "uint256" },
+      { "name": "_galleryId", "type": "uint16", "internalType": "uint16" }
+    ],
+    "outputs": [{ "name": "", "type": "uint256", "internalType": "uint256" }],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getCollectionProfileIdsByGalleryId",
+    "inputs": [
+      { "name": "_collectionId", "type": "uint256", "internalType": "uint256" },
+      { "name": "_galleryId", "type": "uint16", "internalType": "uint16" }
+    ],
+    "outputs": [
+      { "name": "", "type": "uint256[]", "internalType": "uint256[]" }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getCollectionPubIdsByGalleryId",
+    "inputs": [
+      { "name": "_collectionId", "type": "uint256", "internalType": "uint256" },
+      { "name": "_galleryId", "type": "uint16", "internalType": "uint16" }
+    ],
+    "outputs": [
+      { "name": "", "type": "uint256[]", "internalType": "uint256[]" }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getCollectionToNPCs",
+    "inputs": [
+      { "name": "_collectionId", "type": "uint256", "internalType": "uint256" }
+    ],
+    "outputs": [
+      { "name": "", "type": "address[]", "internalType": "address[]" }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getCollectionTypeByGalleryId",
+    "inputs": [
+      { "name": "_collectionId", "type": "uint256", "internalType": "uint256" },
+      { "name": "_galleryId", "type": "uint16", "internalType": "uint16" }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint8",
+        "internalType": "enum AutographLibrary.AutographType"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getCollectionURIByGalleryId",
+    "inputs": [
+      { "name": "_collectionId", "type": "uint256", "internalType": "uint256" },
+      { "name": "_galleryId", "type": "uint16", "internalType": "uint16" }
+    ],
+    "outputs": [{ "name": "", "type": "string", "internalType": "string" }],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getDesignerGalleries",
+    "inputs": [
+      { "name": "_designer", "type": "address", "internalType": "address" }
+    ],
+    "outputs": [{ "name": "", "type": "uint16[]", "internalType": "uint16[]" }],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getDesignerProfileId",
+    "inputs": [
+      { "name": "_designer", "type": "address", "internalType": "address" }
+    ],
+    "outputs": [{ "name": "", "type": "uint256", "internalType": "uint256" }],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getGalleryCollectionCount",
+    "inputs": [
+      { "name": "_galleryId", "type": "uint16", "internalType": "uint16" }
+    ],
+    "outputs": [{ "name": "", "type": "uint256", "internalType": "uint256" }],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getGalleryCollections",
+    "inputs": [
+      { "name": "_galleryId", "type": "uint16", "internalType": "uint16" }
+    ],
+    "outputs": [
+      { "name": "", "type": "uint256[]", "internalType": "uint256[]" }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getGalleryCounter",
+    "inputs": [],
+    "outputs": [{ "name": "", "type": "uint256", "internalType": "uint256" }],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getGalleryLengthByDesigner",
+    "inputs": [
+      { "name": "_designer", "type": "address", "internalType": "address" }
+    ],
+    "outputs": [{ "name": "", "type": "uint256", "internalType": "uint256" }],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getHoodieBase",
+    "inputs": [],
+    "outputs": [{ "name": "", "type": "uint256", "internalType": "uint256" }],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getMintedTokenIdsByGalleryId",
+    "inputs": [
+      { "name": "_collectionId", "type": "uint256", "internalType": "uint256" },
+      { "name": "_galleryId", "type": "uint16", "internalType": "uint16" }
+    ],
+    "outputs": [
+      { "name": "", "type": "uint256[]", "internalType": "uint256[]" }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getNFTMix",
+    "inputs": [],
+    "outputs": [
+      { "name": "", "type": "uint256[]", "internalType": "uint256[]" }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getNPCToCollections",
+    "inputs": [
+      { "name": "_npcWallet", "type": "address", "internalType": "address" }
+    ],
+    "outputs": [
+      { "name": "", "type": "uint256[]", "internalType": "uint256[]" }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getOrderAmounts",
+    "inputs": [
+      { "name": "_orderId", "type": "uint256", "internalType": "uint256" }
+    ],
+    "outputs": [{ "name": "", "type": "uint8[]", "internalType": "uint8[]" }],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getOrderBuyer",
+    "inputs": [
+      { "name": "_orderId", "type": "uint256", "internalType": "uint256" }
+    ],
+    "outputs": [{ "name": "", "type": "address", "internalType": "address" }],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getOrderCollectionIds",
+    "inputs": [
+      { "name": "_orderId", "type": "uint256", "internalType": "uint256" }
+    ],
+    "outputs": [
+      { "name": "", "type": "uint256[][]", "internalType": "uint256[][]" }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getOrderCounter",
+    "inputs": [],
+    "outputs": [{ "name": "", "type": "uint256", "internalType": "uint256" }],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getOrderCurrencies",
+    "inputs": [
+      { "name": "_orderId", "type": "uint256", "internalType": "uint256" }
+    ],
+    "outputs": [
+      { "name": "", "type": "address[]", "internalType": "address[]" }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getOrderFulfillment",
+    "inputs": [
+      { "name": "_orderId", "type": "uint256", "internalType": "uint256" }
+    ],
+    "outputs": [{ "name": "", "type": "string", "internalType": "string" }],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getOrderMintedTokens",
+    "inputs": [
+      { "name": "_orderId", "type": "uint256", "internalType": "uint256" }
+    ],
+    "outputs": [
+      { "name": "", "type": "uint256[][]", "internalType": "uint256[][]" }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getOrderParentIds",
+    "inputs": [
+      { "name": "_orderId", "type": "uint256", "internalType": "uint256" }
+    ],
+    "outputs": [
+      { "name": "", "type": "uint256[]", "internalType": "uint256[]" }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getOrderSubTotals",
+    "inputs": [
+      { "name": "_orderId", "type": "uint256", "internalType": "uint256" }
+    ],
+    "outputs": [
+      { "name": "", "type": "uint256[]", "internalType": "uint256[]" }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getOrderSubTypes",
+    "inputs": [
+      { "name": "_orderId", "type": "uint256", "internalType": "uint256" }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint8[]",
+        "internalType": "enum AutographLibrary.AutographType[]"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getOrderTotal",
+    "inputs": [
+      { "name": "_orderId", "type": "uint256", "internalType": "uint256" }
+    ],
+    "outputs": [{ "name": "", "type": "uint256", "internalType": "uint256" }],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getShirtBase",
+    "inputs": [],
+    "outputs": [{ "name": "", "type": "uint256", "internalType": "uint256" }],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getVig",
+    "inputs": [],
+    "outputs": [{ "name": "", "type": "uint256", "internalType": "uint256" }],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "name",
+    "inputs": [],
+    "outputs": [{ "name": "", "type": "string", "internalType": "string" }],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "setHoodieBase",
+    "inputs": [
+      { "name": "_newBase", "type": "uint256", "internalType": "uint256" }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "setMintedCatalog",
+    "inputs": [{ "name": "_amount", "type": "uint8", "internalType": "uint8" }],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "setMintedTokens",
+    "inputs": [
+      { "name": "_tokenIds", "type": "uint256[]", "internalType": "uint256[]" },
+      {
+        "name": "_collectionIds",
+        "type": "uint256[]",
+        "internalType": "uint256[]"
+      },
+      { "name": "_galleryIds", "type": "uint16[]", "internalType": "uint16[]" }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "setShirtBase",
+    "inputs": [
+      { "name": "_newBase", "type": "uint256", "internalType": "uint256" }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "setVig",
+    "inputs": [
+      { "name": "_newVig", "type": "uint256", "internalType": "uint256" }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
     "name": "symbol",
-    "outputs": [{ "internalType": "string", "name": "", "type": "string" }],
-    "stateMutability": "view",
-    "type": "function"
-  }
+    "inputs": [],
+    "outputs": [{ "name": "", "type": "string", "internalType": "string" }],
+    "stateMutability": "view"
+  },
+  {
+    "type": "event",
+    "name": "AutographCreated",
+    "inputs": [
+      {
+        "name": "uri",
+        "type": "string",
+        "indexed": false,
+        "internalType": "string"
+      },
+      {
+        "name": "amount",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "AutographTokensMinted",
+    "inputs": [
+      {
+        "name": "amount",
+        "type": "uint8",
+        "indexed": false,
+        "internalType": "uint8"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "CollectionDeleted",
+    "inputs": [
+      {
+        "name": "collectionId",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "galleryId",
+        "type": "uint16",
+        "indexed": false,
+        "internalType": "uint16"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "CollectionTokenMinted",
+    "inputs": [
+      {
+        "name": "tokenIds",
+        "type": "uint256[]",
+        "indexed": false,
+        "internalType": "uint256[]"
+      },
+      {
+        "name": "collectionIds",
+        "type": "uint256[]",
+        "indexed": false,
+        "internalType": "uint256[]"
+      },
+      {
+        "name": "galleryIds",
+        "type": "uint16[]",
+        "indexed": false,
+        "internalType": "uint16[]"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "GalleryCreated",
+    "inputs": [
+      {
+        "name": "collectionIds",
+        "type": "uint256[]",
+        "indexed": false,
+        "internalType": "uint256[]"
+      },
+      {
+        "name": "designer",
+        "type": "address",
+        "indexed": false,
+        "internalType": "address"
+      },
+      {
+        "name": "galleryId",
+        "type": "uint16",
+        "indexed": false,
+        "internalType": "uint16"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "GalleryDeleted",
+    "inputs": [
+      {
+        "name": "designer",
+        "type": "address",
+        "indexed": false,
+        "internalType": "address"
+      },
+      {
+        "name": "galleryId",
+        "type": "uint16",
+        "indexed": false,
+        "internalType": "uint16"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "GalleryUpdated",
+    "inputs": [
+      {
+        "name": "collectionIds",
+        "type": "uint256[]",
+        "indexed": false,
+        "internalType": "uint256[]"
+      },
+      {
+        "name": "designer",
+        "type": "address",
+        "indexed": false,
+        "internalType": "address"
+      },
+      {
+        "name": "galleryId",
+        "type": "uint16",
+        "indexed": false,
+        "internalType": "uint16"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "OrderCreated",
+    "inputs": [
+      {
+        "name": "subOrderTypes",
+        "type": "uint8[]",
+        "indexed": false,
+        "internalType": "enum AutographLibrary.AutographType[]"
+      },
+      {
+        "name": "total",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "orderId",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "PublicationConnected",
+    "inputs": [
+      {
+        "name": "pubId",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "profileId",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "collectionId",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "galleryId",
+        "type": "uint16",
+        "indexed": false,
+        "internalType": "uint16"
+      }
+    ],
+    "anonymous": false
+  },
+  { "type": "error", "name": "CollectionNotFound", "inputs": [] },
+  { "type": "error", "name": "InvalidAddress", "inputs": [] }
 ]

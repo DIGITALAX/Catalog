@@ -35,13 +35,13 @@ import {
 
 export function handleAutographCreated(event: AutographCreatedEvent): void {
   let entity = new AutographCreated(
-    event.transaction.hash.concatI32(event.logIndex.toI32())
+    Bytes.fromByteArray(ByteArray.fromHexString("0x"))
   );
   entity.uri = event.params.uri;
   entity.amount = event.params.amount;
 
   let datos = AutographData.bind(
-    Address.fromString("0x52f43D34e1abb0a6d1C97c0CF8b8f323872fC664")
+    Address.fromString("0x64d7b1b3388f8F0B0eaF96fCcd30F94797A7Bf95")
   );
 
   entity.price = datos.getAutographPrice();
@@ -52,7 +52,6 @@ export function handleAutographCreated(event: AutographCreatedEvent): void {
   entity.profileId = datos.getAutographProfileId();
   entity.pubId = datos.getAutographPubId();
   entity.designer = datos.getAutographDesigner();
-  entity.mintedTokens = datos.getAutographMinted();
 
   let pages: string[] = [];
   for (let i = 0; i < entity.pageCount - 1; i++) {
@@ -161,7 +160,7 @@ export function handleGalleryCreated(event: GalleryCreatedEvent): void {
   entity.transactionHash = event.transaction.hash;
 
   let datos = AutographData.bind(
-    Address.fromString("0x52f43D34e1abb0a6d1C97c0CF8b8f323872fC664")
+    Address.fromString("0x64d7b1b3388f8F0B0eaF96fCcd30F94797A7Bf95")
   );
 
   let colecciones: Bytes[] = [];
@@ -270,7 +269,7 @@ export function handleGalleryUpdated(event: GalleryUpdatedEvent): void {
   );
 
   let datos = AutographData.bind(
-    Address.fromString("0x52f43D34e1abb0a6d1C97c0CF8b8f323872fC664")
+    Address.fromString("0x64d7b1b3388f8F0B0eaF96fCcd30F94797A7Bf95")
   );
 
   if (entityGallery) {
@@ -290,7 +289,6 @@ export function handleGalleryUpdated(event: GalleryUpdatedEvent): void {
       );
 
       colecciones.push(coleccion.id);
-
 
       coleccion.collectionId = entity.collectionIds[i];
       coleccion.acceptedTokens = datos
@@ -359,7 +357,7 @@ export function handleOrderCreated(event: OrderCreatedEvent): void {
   entity.transactionHash = event.transaction.hash;
 
   let datos = AutographData.bind(
-    Address.fromString("0x52f43D34e1abb0a6d1C97c0CF8b8f323872fC664")
+    Address.fromString("0x64d7b1b3388f8F0B0eaF96fCcd30F94797A7Bf95")
   );
 
   entity.buyer = datos.getOrderBuyer(entity.orderId);
@@ -436,6 +434,24 @@ export function handleOrderCreated(event: OrderCreatedEvent): void {
         }
 
         entityCollection.save();
+      }
+    }
+  }
+
+  let subs = datos.getOrderSubTypes(entity.orderId);
+
+  for (let i = 0; i < subs.length; i++) {
+    if (subs[i] == 3) {
+      let entityAuto = AutographCreated.load(
+        Bytes.fromByteArray(ByteArray.fromHexString("0x"))
+      );
+
+      if (entityAuto) {
+        let tokens = datos.getOrderMintedTokens(entity.orderId);
+
+        entityAuto.mintedTokens = entityAuto.mintedTokens + tokens[i].length;
+
+        entityAuto.save();
       }
     }
   }

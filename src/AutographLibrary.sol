@@ -12,12 +12,12 @@ contract AutographLibrary {
     }
 
     enum LensType {
-        Catalog,
-        Comment,
-        Publication,
-        Autograph,
-        Quote,
-        Mirror
+        Catalog, 
+        Comment, 
+        Publication, 
+        Autograph, 
+        Quote, 
+        Mirror 
     }
 
     struct Publication {
