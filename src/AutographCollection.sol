@@ -75,7 +75,10 @@ contract AutographCollection is ERC721Enumerable {
 
         if (
             msg.sender !=
-            autographData.getCollectionDesignerByGalleryId(_collections[0], 1)
+            autographData.getCollectionDesignerByGalleryId(
+                _collections[0],
+                _galleryId
+            )
         ) {
             revert NotGalleryDesigner();
         }
@@ -154,11 +157,7 @@ contract AutographCollection is ERC721Enumerable {
             });
         }
 
-        autographData.setMintedTokens(
-            _tokenIds,
-            _collectionIds,
-            _galleryIds
-        );
+        autographData.setMintedTokens(_tokenIds, _collectionIds, _galleryIds);
 
         return _tokenIds;
     }

@@ -78,6 +78,7 @@ contract NPCPublicationTest is Test {
         matic = new TestERC20();
 
         accessControl.setFulfiller(fulfiller);
+        accessControl.addAdmin(admin);
         autographData.setShirtBase(50000000000000000000);
         autographData.setHoodieBase(60000000000000000000);
         autographData.setVig(5);
@@ -307,7 +308,8 @@ contract NPCPublicationTest is Test {
 
         vm.prank(hub);
         autographOpenAction.initializePublicationAction(900, 120, owner, data);
-
+        vm.prank(admin);
+        npcPublication.activatePublications();
         (
             AutographLibrary.LensType _lensType,
             uint256 _collectionId,
@@ -338,6 +340,8 @@ contract NPCPublicationTest is Test {
             _lensTypeDos
         );
 
+        console.log(uint8(_lensType), uint8(_lensTypeDos));
+
         (
             AutographLibrary.LensType _lensTypeTres,
             uint256 _collectionIdTres,
@@ -367,6 +371,7 @@ contract NPCPublicationTest is Test {
             _pageCuatro,
             _lensTypeCuatro
         );
+        console.log(uint8(_lensTypeTres), uint8(_lensTypeCuatro));
 
         (
             AutographLibrary.LensType _lensTypeCinco,
@@ -397,5 +402,39 @@ contract NPCPublicationTest is Test {
             _pageSeis,
             _lensTypeSeis
         );
+
+        console.log(uint8(_lensTypeCinco), uint8(_lensTypeSeis));
+
+        (
+            AutographLibrary.LensType _lensTypeSiete,
+            uint256 _collectionIdSiete,
+            uint8 _pageSiete,
+            uint256 _profileIdSiete
+        ) = npcPublication.getPublicationPredictByNPC(npc1);
+        vm.prank(npc1);
+        npcPublication.registerPublication(
+            _collectionIdSiete,
+            230,
+            121,
+            _pageSiete,
+            _lensTypeSiete
+        );
+
+        (
+            AutographLibrary.LensType _lensTypeOcho,
+            uint256 _collectionIdOcho,
+            uint8 _pageOcho,
+            uint256 _profileIdOcho
+        ) = npcPublication.getPublicationPredictByNPC(npc1);
+        vm.prank(npc1);
+        npcPublication.registerPublication(
+            _collectionIdOcho,
+            230,
+            121,
+            _pageOcho,
+            _lensTypeOcho
+        );
+
+        console.log(uint8(_lensTypeSiete), uint8(_lensTypeOcho));
     }
 }
