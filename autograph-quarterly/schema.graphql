@@ -1,13 +1,21 @@
-type AutographCreated @entity(immutable: true) {
+type AutographCreated @entity(immutable: false) {
   id: Bytes!
   uri: String! # string
   amount: BigInt! # uint256
+  price: BigInt!
+  pageCount: Int!
+  acceptedTokens: [Bytes!]
+  pages: [String!]
+  profileId: BigInt!
+  pubId: BigInt!
+  designer: Bytes!
+  mintedTokens: Int
   blockNumber: BigInt!
   blockTimestamp: BigInt!
   transactionHash: Bytes!
 }
 
-type AutographTokensMinted @entity(immutable: true) {
+type AutographTokensMinted @entity(immutable: false) {
   id: Bytes!
   amount: Int! # uint8
   blockNumber: BigInt!
@@ -15,7 +23,7 @@ type AutographTokensMinted @entity(immutable: true) {
   transactionHash: Bytes!
 }
 
-type CollectionDeleted @entity(immutable: true) {
+type CollectionDeleted @entity(immutable: false) {
   id: Bytes!
   collectionId: BigInt! # uint256
   galleryId: Int! # uint16
@@ -24,7 +32,7 @@ type CollectionDeleted @entity(immutable: true) {
   transactionHash: Bytes!
 }
 
-type CollectionTokenMinted @entity(immutable: true) {
+type CollectionTokenMinted @entity(immutable: false) {
   id: Bytes!
   tokenIds: [BigInt!]! # uint256[]
   collectionIds: [BigInt!]! # uint256[]
@@ -34,7 +42,27 @@ type CollectionTokenMinted @entity(immutable: true) {
   transactionHash: Bytes!
 }
 
-type GalleryCreated @entity(immutable: true) {
+type GalleryCreated @entity(immutable: false) {
+  id: Bytes!
+  collectionIds: [BigInt!]! # uint256[]
+  designer: Bytes! # address
+  galleryId: Int! # uint16
+  blockNumber: BigInt!
+  collections: [Collection!]
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type GalleryDeleted @entity(immutable: false) {
+  id: Bytes!
+  designer: Bytes! # address
+  galleryId: Int! # uint16
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type GalleryUpdated @entity(immutable: false) {
   id: Bytes!
   collectionIds: [BigInt!]! # uint256[]
   designer: Bytes! # address
@@ -44,26 +72,7 @@ type GalleryCreated @entity(immutable: true) {
   transactionHash: Bytes!
 }
 
-type GalleryDeleted @entity(immutable: true) {
-  id: Bytes!
-  designer: Bytes! # address
-  galleryId: Int! # uint16
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
-}
-
-type GalleryUpdated @entity(immutable: true) {
-  id: Bytes!
-  collectionIds: [BigInt!]! # uint256[]
-  designer: Bytes! # address
-  galleryId: Int! # uint16
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
-}
-
-type OrderCreated @entity(immutable: true) {
+type OrderCreated @entity(immutable: false) {
   id: Bytes!
   subOrderTypes: [Int!]! # uint8[]
   total: BigInt! # uint256
@@ -71,14 +80,118 @@ type OrderCreated @entity(immutable: true) {
   blockNumber: BigInt!
   blockTimestamp: BigInt!
   transactionHash: Bytes!
+  buyer: Bytes!
+  fulfillment: String
+  amounts: [Int!]
+  subTotals: [BigInt!]
+  parentIds: [BigInt!]
+  collectionIds: String
+  currencies: [Bytes!]
+  mintedTokens: String
 }
 
-type PublicationConnected @entity(immutable: true) {
+type PublicationConnected @entity(immutable: false) {
   id: Bytes!
   pubId: BigInt! # uint256
   profileId: BigInt! # uint256
   collectionId: BigInt! # uint256
   galleryId: Int! # uint16
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type CollectionMetadata @entity {
+  id: ID!
+  title: String!
+  description: String!
+  image: String!
+  tipo: String!
+  gallery: String!
+  tags: String
+  npcs: String
+  locales: String
+  instructions: String
+}
+
+type Collection @entity(immutable: false) {
+  id: Bytes!
+  collectionId: BigInt!
+  galleryId: Int!
+  uri: String!
+  price: BigInt
+  amount: Int
+  designer: Bytes!
+  type: Int
+  mintedTokens: [BigInt!]
+  acceptedTokens: [Bytes!]
+  collectionMetadata: CollectionMetadata
+  pubIds: [BigInt!]
+  profileIds: [BigInt!]
+  mix: Boolean
+}
+type CurrencyAdded @entity(immutable: false) {
+  id: Bytes!
+  currency: Bytes! # address
+  wei: BigInt!
+  rate: BigInt
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type CurrencyRemoved @entity(immutable: false) {
+  id: Bytes!
+  currency: Bytes! # address
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type DesignerSplitSet @entity(immutable: false) {
+  id: Bytes!
+  designer: Bytes! # address
+  printType: BigInt! # uint256
+  split: BigInt! # uint256
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type FulfillerBaseSet @entity(immutable: false) {
+  id: Bytes!
+  fulfiller: Bytes! # address
+  printType: BigInt! # uint256
+  split: BigInt! # uint256
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type FulfillerSplitSet @entity(immutable: false) {
+  id: Bytes!
+  fulfiller: Bytes! # address
+  printType: BigInt! # uint256
+  split: BigInt! # uint256
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type OracleUpdated @entity(immutable: false) {
+  id: Bytes!
+  currency: Bytes! # address
+  rate: BigInt! # uint256
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type TreasurySplitSet @entity(immutable: false) {
+  id: Bytes!
+  treasury: Bytes! # address
+  printType: BigInt! # uint256
+  split: BigInt! # uint256
   blockNumber: BigInt!
   blockTimestamp: BigInt!
   transactionHash: Bytes!
