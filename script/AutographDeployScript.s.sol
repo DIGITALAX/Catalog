@@ -22,7 +22,8 @@ contract AutographDeployScript is Script {
     address hub = 0xDb46d1Dc155634FbC732f92E853b10B288AD5a1d;
     address moduleGlobals_amoy = 0x9E81eD8099dF82004D298144138C12AbB959DF1E;
     address moduleGlobals = 0x1eD5983F0c883B96f7C35528a1e22EEA67DE3Ff9;
-    address printSplitsData = 0x8402e22e4712acc9Bb91Fbec752881c4F9f21b1D;
+    address printSplitsData_amoy = 0x8402e22e4712acc9Bb91Fbec752881c4F9f21b1D;
+    address printSplitsData = 0x5A4A9a99d4736aE024044d17AA989426C76fafFD;
     address usd = 0x29244d4cb549c35A9E634b262e62a49Aa7A14B80;
     address mona = 0x5dd9A1636B221b45043B040a72F4229F8D66e40D;
     address eth = 0xc4414EBA4Caa899F52463aa232E451AC31d00Ed3;
@@ -77,7 +78,8 @@ contract AutographDeployScript is Script {
         autographMarket.setAutographData(address(autographData));
         autographNFT.setAutographData(address(autographData));
         autographNFT.setAutographMarketAddress(address(autographMarket));
-
+        autographCollection.setParentMixURI("parentURI");
+        
         vm.stopBroadcast();
 
         console.log(
