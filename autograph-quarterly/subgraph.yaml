@@ -1,0 +1,50 @@
+specVersion: 1.0.0
+indexerHints:
+  prune: auto
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum
+    name: AutographData
+    network: matic
+    source:
+      address: "0xd52dA212D5C7Ec8f7Bb3594372530b19f3e5f37E"
+      abi: AutographData
+      startBlock: 58657401
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - AutographCreated
+        - AutographTokensMinted
+        - CollectionDeleted
+        - CollectionTokenMinted
+        - GalleryCreated
+        - GalleryDeleted
+        - GalleryUpdated
+        - OrderCreated
+        - PublicationConnected
+      abis:
+        - name: AutographData
+          file: ./abis/AutographData.json
+      eventHandlers:
+        - event: AutographCreated(string,uint256)
+          handler: handleAutographCreated
+        - event: AutographTokensMinted(uint8)
+          handler: handleAutographTokensMinted
+        - event: CollectionDeleted(uint256,uint16)
+          handler: handleCollectionDeleted
+        - event: CollectionTokenMinted(uint256[],uint256[],uint16[])
+          handler: handleCollectionTokenMinted
+        - event: GalleryCreated(uint256[],address,uint16)
+          handler: handleGalleryCreated
+        - event: GalleryDeleted(address,uint16)
+          handler: handleGalleryDeleted
+        - event: GalleryUpdated(uint256[],address,uint16)
+          handler: handleGalleryUpdated
+        - event: OrderCreated(uint8[],uint256,uint256)
+          handler: handleOrderCreated
+        - event: PublicationConnected(uint256,uint256,uint256,uint16)
+          handler: handlePublicationConnected
+      file: ./src/autograph-data.ts

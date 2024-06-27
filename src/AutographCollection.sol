@@ -11,6 +11,7 @@ contract AutographCollection is ERC721Enumerable {
     AutographAccessControl public autographAccessControl;
     AutographData public autographData;
     AutographMarket public autographMarket;
+    string private _parentMixURI;
     uint256 private _supply;
 
     error AddressNotVerified();
@@ -167,11 +168,15 @@ contract AutographCollection is ERC721Enumerable {
     ) public view virtual override returns (string memory) {
         AutographLibrary.CollectionMap memory info = _collectionMap[_tokenId];
 
-        return
-            autographData.getCollectionURIByGalleryId(
-                info.collectionId,
-                info.galleryId
-            );
+        if (info.collectionId == 0 && info.galleryId == 0) {
+            return _parentMixURI;
+        } else {
+            return
+                autographData.getCollectionURIByGalleryId(
+                    info.collectionId,
+                    info.galleryId
+                );
+        }
     }
 
     function getTokenSupply() public view returns (uint256) {
@@ -322,5 +327,9 @@ contract AutographCollection is ERC721Enumerable {
 
     function setAutographMarket(address _autographMarket) public OnlyAdmin {
         autographMarket = AutographMarket(_autographMarket);
+    }
+
+    function setParentMixURI(string memory _uri) public OnlyAdmin {
+        _parentMixURI = _uri;
     }
 }
