@@ -3,40 +3,78 @@ pragma solidity ^0.8.26;
 
 import "./AutographAccessControl.sol";
 import "./NPCLibrary.sol";
+import "./AUNFT.sol";
 
 contract NPCControls {
     AutographAccessControl public accessControl;
+    AUNFT public auNFT;
+    string public symbol;
+    string public name;
+    address public npcModule;
+    address public npcGovernance;
     uint256 public npcCount;
     uint256 public moduleCount;
-    address public npcAU;
-    mapping(string => NPCLibrary.NPC) private _npcs;
-    mapping(string => mapping(address => uint256[])) private _npcModuleIds;
-    mapping(string => address[]) private _npcCreators;
 
-    event NPCInitialized(string name);
-    event NPCEdited(string name);
-    event ActivityModuleAdded(address creator, uint256 moduleId);
-    event ActivityModuleUpdated(address creator, uint256 moduleId);
-    event ActivityModuleRemoved(address creator, uint256 moduleId);
+    mapping(address => NPCLibrary.NPC) private _npcs;
+    mapping(address => mapping(address => uint256[])) private _npcModuleIds;
+    mapping(address => address[]) private _npcCreators;
+    mapping(address => mapping(address => mapping(uint256 => uint256)))
+        private _tokenIdMap;
+
+    event NPCInitialized(address npcAddress);
+    event NPCEdited(address npcAddress);
+    event ActivityModuleAdded(
+        address creator,
+        address npcAddress,
+        uint256 moduleId,
+        uint256 nftId
+    );
+    event ActivityModuleUpdated(
+        address creator,
+        address npcAddress,
+        uint256 moduleId,
+        uint256 nftId
+    );
+    event ActivityModuleRemoved(
+        address creator,
+        address npcAddress,
+        uint256 moduleId
+    );
+    event OutfitUpdated(address creator, address npcAddress, uint256 moduleId);
+    event ProductUpdated(address creator, address npcAddress, uint256 moduleId);
+    event InteractionUpdated(
+        address creator,
+        address npcAddress,
+        uint256 moduleId
+    );
 
     error NPCAlreadyRegistered();
     error OnlyAdmin();
     error OnlyNPCAu();
 
-    constructor(address _accessControl, address _npcAU) {
+    constructor(
+        address _accessControl,
+        address _npcModule,
+        address _auNFT,
+        address _npcGovernance
+    ) {
         accessControl = AutographAccessControl(_accessControl);
-        npcAU = _npcAU;
+        npcModule = _npcModule;
+        npcGovernance = _npcGovernance;
+        auNFT = AUNFT(_auNFT);
+        name = "NPCControls";
+        symbol = "NPCC";
     }
 
     modifier onlyAdmin() {
-        if (!accessControl.isAdmin(msg.sender)) {
+        if (!accessControl.isAdmin(msg.sender) && msg.sender != npcGovernance) {
             revert OnlyAdmin();
         }
         _;
     }
 
     modifier OnlyNPCAU() {
-        if (msg.sender != npcAU) {
+        if (msg.sender != npcModule) {
             revert OnlyNPCAu();
         }
         _;
@@ -44,33 +82,34 @@ contract NPCControls {
 
     function initializeNPC(
         string[] memory _scenes,
-        string memory _name,
-        string memory _spriteSheet
+        string memory _spriteSheet,
+        address _npcAddress
     ) public onlyAdmin {
-        if (_npcs[_name].isRegistered) {
+        if (_npcs[_npcAddress].isRegistered) {
             revert NPCAlreadyRegistered();
         }
-        _npcs[_name].isRegistered = true;
-        _npcs[_name].spriteSheet = _spriteSheet;
-        _npcs[_name].scenes = _scenes;
+        _npcs[_npcAddress].isRegistered = true;
+        _npcs[_npcAddress].spriteSheet = _spriteSheet;
+        _npcs[_npcAddress].scenes = _scenes;
         npcCount++;
-        emit NPCInitialized(_name);
+        emit NPCInitialized(_npcAddress);
     }
 
     function editNPC(
         string[] memory _scenes,
-        string memory _name,
-        string memory _spriteSheet
+        string memory _spriteSheet,
+        address _npcAddress
     ) public onlyAdmin {
-        _npcs[_name].isRegistered = true;
-        _npcs[_name].spriteSheet = _spriteSheet;
-        _npcs[_name].scenes = _scenes;
-        emit NPCEdited(_name);
+        _npcs[_npcAddress].isRegistered = true;
+        _npcs[_npcAddress].spriteSheet = _spriteSheet;
+        _npcs[_npcAddress].scenes = _scenes;
+        emit NPCEdited(_npcAddress);
     }
 
     function addActivityModule(
         NPCLibrary.ActivityModule memory _module,
-        string memory _npc,
+        string memory _uri,
+        address _npc,
         address _creator
     ) external OnlyNPCAU {
         moduleCount++;
@@ -85,34 +124,74 @@ contract NPCControls {
         }
         _npcModuleIds[_npc][_creator].push(moduleCount);
 
-        emit ActivityModuleAdded(_creator, moduleCount);
+        uint256 _tokenId = auNFT.mint(_uri, _creator);
+
+        _tokenIdMap[_npc][_creator][moduleCount] = _tokenId;
+
+        emit ActivityModuleAdded(_creator, _npc, moduleCount, _tokenId);
+    }
+
+    function removeActivityModule(
+        address _npc,
+        address _creator,
+        uint256 _moduleId
+    ) external OnlyNPCAU {
+        uint256[] storage _moduleIds = _npcModuleIds[_npc][_creator];
+
+        delete _npcs[_npc].activityModules[_creator][_moduleId];
+
+        for (uint i = 0; i < _moduleIds.length; i++) {
+            if (_moduleIds[i] == _moduleId) {
+                _moduleIds[i] = _moduleIds[_moduleIds.length - 1];
+                _moduleIds.pop();
+                break;
+            }
+        }
+
+        if (_moduleIds.length == 0) {
+            address[] storage creators = _npcCreators[_npc];
+            for (uint i = 0; i < creators.length; i++) {
+                if (creators[i] == _creator) {
+                    creators[i] = creators[creators.length - 1];
+                    creators.pop();
+                    break;
+                }
+            }
+        }
+
+        emit ActivityModuleRemoved(_creator, _npc, _moduleId);
     }
 
     function addToExistingActivity(
-        string memory _npc,
+        address _npc,
         address _creator,
-        uint256 _moduleCount,
+        uint256 _moduleId,
         uint256 _outfitAmount,
         uint256 _productPostAmount,
-        uint256 _profileInteractionAmount,
+        uint256 _interactionAmount,
         uint256 _expiration
     ) external OnlyNPCAU {
         _npcs[_npc]
         .activityModules[_creator][moduleCount].outfitAmount = _outfitAmount;
         _npcs[_npc]
         .activityModules[_creator][moduleCount]
-            .profileInteractionAmount = _profileInteractionAmount;
+            .interactionAmount = _interactionAmount;
         _npcs[_npc]
         .activityModules[_creator][moduleCount]
             .productPostAmount = _productPostAmount;
         _npcs[_npc]
         .activityModules[_creator][moduleCount].expiration = _expiration;
 
-        emit ActivityModuleUpdated(_creator, _moduleCount);
+        emit ActivityModuleUpdated(
+            _creator,
+            _npc,
+            _moduleId,
+            _tokenIdMap[_npc][_creator][moduleCount]
+        );
     }
 
     function isActivityModuleExpired(
-        string memory _npc,
+        address _npc,
         address _creator,
         uint256 _moduleId
     ) public view returns (bool) {
@@ -122,7 +201,7 @@ contract NPCControls {
     }
 
     function isTimeToUpdateOutfit(
-        string memory _npc,
+        address _npc,
         address _creator,
         uint256 _moduleId
     ) public returns (bool) {
@@ -146,11 +225,13 @@ contract NPCControls {
 
         _module.lastUpdateOutfit = block.timestamp;
 
+        emit OutfitUpdated(_creator, _npc, _moduleId);
+
         return true;
     }
 
     function isTimeToUpdateProduct(
-        string memory _npc,
+        address _npc,
         address _creator,
         uint256 _moduleId
     ) public returns (bool) {
@@ -174,11 +255,13 @@ contract NPCControls {
 
         _module.lastUpdateProduct = block.timestamp;
 
+        emit ProductUpdated(_creator, _npc, _moduleId);
+
         return true;
     }
 
     function isTimeToUpdateInteraction(
-        string memory _npc,
+        address _npc,
         address _creator,
         uint256 _moduleId
     ) public returns (bool) {
@@ -189,48 +272,43 @@ contract NPCControls {
         if (
             block.timestamp > _module.expiration ||
             block.timestamp <
-            _module.lastUpdateInteraction +
-                24 hours /
-                _module.profileInteractionAmount
+            _module.lastUpdateInteraction + 24 hours / _module.interactionAmount
         ) {
             return false;
         }
 
-        if (
-            _module.interactionCycleFrequency >=
-            _module.profileInteractionAmount
-        ) {
-            _module.profileInteractionAmount = 0;
+        if (_module.interactionCycleFrequency >= _module.interactionAmount) {
+            _module.interactionAmount = 0;
         } else {
             _module.interactionCycleFrequency++;
         }
 
         _module.lastUpdateInteraction = block.timestamp;
 
+        emit InteractionUpdated(_creator, _npc, _moduleId);
+
         return true;
     }
 
-    function cleanupExpiredActivityModules(
-        string memory _npc
-    ) public onlyAdmin {
+    function cleanupExpiredActivityModules(address _npc) public onlyAdmin {
         for (uint i = 0; i < _npcCreators[_npc].length; i++) {
-            address creator = _npcCreators[_npc][i];
-            uint256[] storage moduleIds = _npcModuleIds[_npc][creator];
+            address _creator = _npcCreators[_npc][i];
+            uint256[] storage _moduleIds = _npcModuleIds[_npc][_creator];
 
-            for (uint j = 0; j < moduleIds.length; j++) {
-                uint256 moduleId = moduleIds[j];
-                if (isActivityModuleExpired(_npc, creator, moduleId)) {
-                    delete _npcs[_npc].activityModules[creator][moduleId];
+            for (uint j = 0; j < _moduleIds.length; j++) {
+                uint256 _moduleId = _moduleIds[j];
+                if (isActivityModuleExpired(_npc, _creator, _moduleId)) {
+                    delete _npcs[_npc].activityModules[_creator][_moduleId];
 
-                    moduleIds[j] = moduleIds[moduleIds.length - 1];
-                    moduleIds.pop();
+                    _moduleIds[j] = _moduleIds[_moduleIds.length - 1];
+                    _moduleIds.pop();
                     j--;
 
-                    emit ActivityModuleRemoved(creator, moduleId);
+                    emit ActivityModuleRemoved(_creator, _npc, _moduleId);
                 }
             }
 
-            if (moduleIds.length == 0) {
+            if (_moduleIds.length == 0) {
                 _npcCreators[_npc][i] = _npcCreators[_npc][
                     _npcCreators[_npc].length - 1
                 ];
@@ -238,5 +316,119 @@ contract NPCControls {
                 i--;
             }
         }
+    }
+
+    function getNPCScenes(address _npc) public view returns (string[] memory) {
+        return _npcs[_npc].scenes;
+    }
+
+    function getNPCSpriteSheet(
+        address _npc
+    ) public view returns (string memory) {
+        return _npcs[_npc].spriteSheet;
+    }
+
+    function getNPCRegistered(address _npc) public view returns (bool) {
+        return _npcs[_npc].isRegistered;
+    }
+
+    function getNPCModuleProducts(
+        address _npc,
+        address _creator,
+        uint256 _moduleId
+    ) public view returns (uint256[] memory) {
+        return _npcs[_npc].activityModules[_creator][_moduleId].products;
+    }
+
+    function getNPCModuleInteractions(
+        address _npc,
+        address _creator,
+        uint256 _moduleId
+    ) public view returns (uint256[] memory) {
+        return
+            _npcs[_npc]
+            .activityModules[_creator][_moduleId].interactionProfiles;
+    }
+
+    function getNPCModuleLanguages(
+        address _npc,
+        address _creator,
+        uint256 _moduleId
+    ) public view returns (string memory) {
+        return _npcs[_npc].activityModules[_creator][_moduleId].languages;
+    }
+
+    function getNPCModuleTopics(
+        address _npc,
+        address _creator,
+        uint256 _moduleId
+    ) public view returns (string memory) {
+        return _npcs[_npc].activityModules[_creator][_moduleId].topics;
+    }
+
+    function getNPCModuleOutfit(
+        address _npc,
+        address _creator,
+        uint256 _moduleId
+    ) public view returns (string memory) {
+        return _npcs[_npc].activityModules[_creator][_moduleId].outfit;
+    }
+
+    function getNPCModuleModel(
+        address _npc,
+        address _creator,
+        uint256 _moduleId
+    ) public view returns (string memory) {
+        return _npcs[_npc].activityModules[_creator][_moduleId].model;
+    }
+
+    function getNPCModulePersonality(
+        address _npc,
+        address _creator,
+        uint256 _moduleId
+    ) public view returns (string memory) {
+        return _npcs[_npc].activityModules[_creator][_moduleId].personality;
+    }
+
+    function getNPCModuleArtist(
+        address _npc,
+        address _creator,
+        uint256 _moduleId
+    ) public view returns (address) {
+        return _npcs[_npc].activityModules[_creator][_moduleId].artist;
+    }
+
+    function getNPCModuleExpiration(
+        address _npc,
+        address _creator,
+        uint256 _moduleId
+    ) public view returns (uint256) {
+        return _npcs[_npc].activityModules[_creator][_moduleId].expiration;
+    }
+
+    function getNPCModuleProductPostAmount(
+        address _npc,
+        address _creator,
+        uint256 _moduleId
+    ) public view returns (uint256) {
+        return
+            _npcs[_npc].activityModules[_creator][_moduleId].productPostAmount;
+    }
+
+    function getNPCModuleProductInteractionAmount(
+        address _npc,
+        address _creator,
+        uint256 _moduleId
+    ) public view returns (uint256) {
+        return
+            _npcs[_npc].activityModules[_creator][_moduleId].interactionAmount;
+    }
+
+    function getNPCModuleOutfitAmount(
+        address _npc,
+        address _creator,
+        uint256 _moduleId
+    ) public view returns (uint256) {
+        return _npcs[_npc].activityModules[_creator][_moduleId].outfitAmount;
     }
 }
