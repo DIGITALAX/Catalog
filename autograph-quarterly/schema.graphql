@@ -112,6 +112,8 @@ type CollectionMetadata @entity {
   npcs: String
   locales: String
   instructions: String
+  images: [String!]
+  colors: [String!]
 }
 
 type Collection @entity(immutable: false) {

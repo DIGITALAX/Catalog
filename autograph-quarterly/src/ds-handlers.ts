@@ -47,6 +47,29 @@ export function handleCollectionMetadata(content: Bytes): void {
       metadata.gallery = gallery.toString();
     }
 
+    let images = value.get("images");
+    if (images && images.kind === JSONValueKind.ARRAY) {
+      metadata.images = images
+        .toArray()
+        .filter(
+          (item) =>
+            item.kind === JSONValueKind.STRING
+        )
+        .map<string>((item) => item.toString());
+    }
+
+
+    let colors = value.get("colors");
+    if (colors && colors.kind === JSONValueKind.ARRAY) {
+      metadata.colors = colors
+        .toArray()
+        .filter(
+          (item) =>
+            item.kind === JSONValueKind.STRING
+        )
+        .map<string>((item) => item.toString());
+    }
+
     metadata.save();
   }
 }
