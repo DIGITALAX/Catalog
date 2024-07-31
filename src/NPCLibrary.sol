@@ -13,7 +13,7 @@ contract NPCLibrary {
         address artist;
         uint256 expiration;
         uint256 productPostAmount;
-        uint256 profileInteractionAmount;
+        uint256 interactionAmount;
         uint256 outfitAmount;
         uint256 lastUpdateOutfit;
         uint256 lastUpdateProduct;
