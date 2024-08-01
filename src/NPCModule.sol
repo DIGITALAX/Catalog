@@ -76,8 +76,6 @@ contract NPCModule {
 
         IERC20(mona).transferFrom(msg.sender, treasury, _monaAmount);
 
-        npcAU.mint(_auAmount);
-
         npcControls.addActivityModule(_module, _npc, msg.sender, _auAmount);
     }
 
@@ -93,7 +91,7 @@ contract NPCModule {
         uint256 _moduleId,
         bool _spectate
     ) public OnlyCreator(_npc, _moduleId) {
-        npcControls.spectateNFT(_npc, msg.sender, _moduleId, _spectate);
+        npcControls.spectateModule(_npc, msg.sender, _moduleId, _spectate);
     }
 
     function updateActivityModule(
@@ -102,7 +100,8 @@ contract NPCModule {
         uint256 _outfitAmount,
         uint256 _productPostAmount,
         uint256 _interactionAmount,
-        uint256 _expiration
+        uint256 _expiration,
+        bool _live
     ) public OnlyCreator(_npc, _moduleId) {
         (uint256 _monaAmount, uint256 _auAmount) = _calculateAmount(
             _outfitAmount,
@@ -113,8 +112,6 @@ contract NPCModule {
 
         IERC20(mona).transferFrom(msg.sender, treasury, _monaAmount);
 
-        npcAU.mintAdditionalAU(_auAmount);
-
         npcControls.addToExistingActivity(
             _npc,
             msg.sender,
@@ -123,12 +120,41 @@ contract NPCModule {
             _productPostAmount,
             _interactionAmount,
             _expiration,
-            _auAmount
+            _auAmount,
+            _live
         );
     }
 
-    function spectateNFT() public {
-        // spectate en un nft como patron
+    function spectateActivityModule(
+        address _npc,
+        address _creator,
+        uint256 _moduleId,
+        uint256 _chosenAUAmount
+    ) public {
+        uint256 _amount = _chosenAUAmount;
+
+        (uint256 _monaAmount, uint256 _auAmount) = _calculateAmount(
+            npcControls.getNPCModuleOutfitAmount(_npc, _creator, _moduleId),
+            npcControls.getNPCModuleProductPostAmount(
+                _npc,
+                _creator,
+                _moduleId
+            ),
+            npcControls.getNPCModuleProductInteractionAmount(
+                _npc,
+                _creator,
+                _moduleId
+            ),
+            npcControls.getNPCModuleExpiration(_npc, _creator, _moduleId)
+        );
+
+        IERC20(mona).transferFrom(msg.sender, treasury, _monaAmount);
+
+        if (_amount == 0) {
+            _amount = _auAmount;
+        }
+
+        npcControls.chargeSpectatedModule(_npc, _creator, _moduleId, _amount);
     }
 
     function updateBaseValues(
@@ -190,7 +216,7 @@ contract NPCModule {
 }
 
 // patron nfts (spectated) añade esto en el código
-// governance vote todas las cuatras semanas (una vez cada mes)
+// governance vota todas las cuatras semanas (una vez cada mes)
 // cómo poner el uri dentro del nft al mintearlo con un lienzo de javascript
 // el AU se envia al NFT y cada día se disminuye el au
 // cada npc tiene un límite del trabajo > la gobernanica lo puede cambiar

@@ -45,6 +45,11 @@ contract NPCControls {
         address npcAddress,
         uint256 moduleId
     );
+    event ActivityModuleCharged(
+        address creator,
+        address npcAddress,
+        uint256 moduleId
+    );
     event OutfitUpdated(address creator, address npcAddress, uint256 moduleId);
     event ProductUpdated(address creator, address npcAddress, uint256 moduleId);
     event InteractionUpdated(
@@ -55,7 +60,7 @@ contract NPCControls {
 
     error NPCAlreadyRegistered();
     error OnlyAdmin();
-    error OnlyNPCAu();
+    error OnlyModule();
 
     constructor(
         address _accessControl,
@@ -78,9 +83,9 @@ contract NPCControls {
         _;
     }
 
-    modifier OnlyNPCAU() {
+    modifier OnlyNPCModule() {
         if (msg.sender != npcModule) {
-            revert OnlyNPCAu();
+            revert OnlyModule();
         }
         _;
     }
@@ -116,7 +121,7 @@ contract NPCControls {
         address _npc,
         address _creator,
         uint256 _auAmount
-    ) external OnlyNPCAU {
+    ) external OnlyNPCModule {
         moduleCount++;
 
         _npcs[_npc].activityModules[_creator][moduleCount] = _module;
@@ -145,12 +150,36 @@ contract NPCControls {
         emit ActivityModuleAdded(_creator, _npc, moduleCount, _tokenId);
     }
 
-    function spectateNFT(
+    function chargeSpectatedModule(
+        address _npc,
+        address _creator,
+        uint256 _moduleId,
+        uint256 _auAmount
+    ) public OnlyNPCModule {
+        if (
+            _auAmount +
+                _npcs[_npc].activityModules[_creator][_moduleId].liveAUAmount >=
+            _npcs[_npc].activityModules[_creator][_moduleId].fundedAUAmounts[
+                _npcs[_npc]
+                    .activityModules[_creator][_moduleId]
+                    .fundedAUAmounts
+                    .length - 1
+            ]
+        ) {
+            _npcs[_npc].activityModules[_creator][_moduleId].live = true;
+        }
+
+        manualNFT.chargeSpectatedAU(_creator, _auAmount);
+
+        emit ActivityModuleCharged(_creator, _npc, _moduleId);
+    }
+
+    function spectateModule(
         address _npc,
         address _creator,
         uint256 _moduleId,
         bool _spectate
-    ) external OnlyNPCAU {
+    ) external OnlyNPCModule {
         _npcs[_npc].activityModules[_creator][_moduleId].spectated = _spectate;
 
         emit ActivityModuleSpectated(_creator, _npc, _moduleId);
@@ -160,7 +189,7 @@ contract NPCControls {
         address _npc,
         address _creator,
         uint256 _moduleId
-    ) external OnlyNPCAU {
+    ) external OnlyNPCModule {
         uint256[] storage _moduleIds = _npcModuleIds[_npc][_creator];
 
         delete _npcs[_npc].activityModules[_creator][_moduleId];
@@ -195,8 +224,9 @@ contract NPCControls {
         uint256 _productPostAmount,
         uint256 _interactionAmount,
         uint256 _expiration,
-        uint256 _auAmount
-    ) external OnlyNPCAU {
+        uint256 _auAmount,
+        bool _live
+    ) external OnlyNPCModule {
         _npcs[_npc]
         .activityModules[_creator][_moduleId].outfitAmount = _outfitAmount;
         _npcs[_npc]
@@ -219,6 +249,7 @@ contract NPCControls {
             .push(block.timestamp);
         _npcs[_npc]
         .activityModules[_creator][_moduleId].liveAUAmount = _auAmount;
+        _npcs[_npc].activityModules[_creator][_moduleId].live = _live;
 
         emit ActivityModuleUpdated(
             _creator,
