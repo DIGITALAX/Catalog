@@ -3,22 +3,22 @@ pragma solidity ^0.8.26;
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 contract NPCAU is ERC20 {
-    address public npcModule;
+    address public manualNFT;
 
     constructor(address _npcModule) ERC20("Autonomy Units", "AU") {
-        npcModule = _npcModule;
+        manualNFT = _npcModule;
     }
 
     error InvalidAddress();
 
-    modifier OnlyModule() {
-        if (msg.sender != npcModule) {
+    modifier OnlyManual() {
+        if (msg.sender != manualNFT) {
             revert InvalidAddress();
         }
         _;
     }
 
-    function mint(uint256 _amount) public OnlyModule {}
-
-    function mintAdditionalAU(uint256 _amount) public OnlyModule {}
+    function mint(address _to, uint256 _amount) public OnlyManual {
+        _mint(_to, _amount);
+    }
 }

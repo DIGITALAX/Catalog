@@ -2,22 +2,24 @@
 pragma solidity ^0.8.26;
 
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "./AutographAccessControl.sol";
+import "./NPCAU.sol";
 
 contract ManualNFT is ERC721Enumerable {
     AutographAccessControl public autographAccessControl;
     address public npcControls;
     uint256 private _supply;
-    IERC20 public auToken;
+    NPCAU public auToken;
     address public npcRent;
 
     error AddressNotVerified();
     error InsufficientTokenBalance();
     error IncorrectBalance();
+    error AddressNotNPC();
 
     event TokenMinted(address creator, uint256 tokenId, uint256 auAmount);
-    event TokensRemoved(uint256 tokenId, uint256 amount, address recipient);
+    event RentPaid(address npc, uint256 tokenId, uint256 amount);
+    event SpectatedAU(address npc, uint256 tokenId, uint256 amount);
 
     mapping(uint256 => string) private _tokenToURI;
     mapping(uint256 => uint256) public tokenAUBalance;
@@ -29,15 +31,15 @@ contract ManualNFT is ERC721Enumerable {
         _;
     }
 
-    modifier OnlyControls() {
-        if (msg.sender != npcControls) {
-            revert AddressNotVerified();
+    modifier OnlyNPC() {
+        if (!autographAccessControl.isNPC(msg.sender)) {
+            revert AddressNotNPC();
         }
         _;
     }
 
-    modifier OnlynpcRent() {
-        if (msg.sender != npcRent) {
+    modifier OnlyControls() {
+        if (msg.sender != npcControls) {
             revert AddressNotVerified();
         }
         _;
@@ -53,7 +55,7 @@ contract ManualNFT is ERC721Enumerable {
             _autographAccessControlAddress
         );
         npcControls = _npcControls;
-        auToken = IERC20(_auTokenAddress);
+        auToken = NPCAU(_auTokenAddress);
         npcRent = _npcRent;
     }
 
@@ -66,19 +68,37 @@ contract ManualNFT is ERC721Enumerable {
         _supply++;
         _safeMint(_creatorAddress, _supply);
 
+        if (_live) {
+            auToken.mint(address(this), _auAmount);
+        }
+
         _tokenToURI[_supply] = _uri;
         tokenAUBalance[_supply] = _auAmount;
-
-        if (_live) {
-            require(
-                auToken.transferFrom(msg.sender, address(this), _auAmount),
-                "AU transfer failed"
-            );
-        }
 
         emit TokenMinted(_creatorAddress, _supply, _auAmount);
 
         return _supply;
+    }
+
+    function chargeSpectatedAU(
+        address _creatorAddress,
+        uint256 _auAmount
+    ) external OnlyControls {
+        auToken.mint(address(this), _auAmount);
+        tokenAUBalance[_supply] = tokenAUBalance[_supply] + _auAmount;
+
+        emit SpectatedAU(_creatorAddress, _supply, _auAmount);
+    }
+
+    function npcTransferAU(uint256 _tokenId, uint256 _amount) public OnlyNPC {
+        if (_amount > tokenAUBalance[_tokenId]) {
+            revert IncorrectBalance();
+        }
+        auToken.approve(msg.sender, _amount);
+        auToken.transferFrom(address(this), npcRent, _amount);
+        tokenAUBalance[_tokenId] -= _amount;
+
+        emit RentPaid(msg.sender, _tokenId, _amount);
     }
 
     function setMetadata(
@@ -96,20 +116,6 @@ contract ManualNFT is ERC721Enumerable {
 
     function getTokenSupply() public view returns (uint256) {
         return _supply;
-    }
-
-    function removeTokens(
-        uint256 _tokenId,
-        uint256 _amount,
-        address _recipient
-    ) public OnlynpcRent {
-        if (_amount > tokenAUBalance[_tokenId]) {
-            revert IncorrectBalance();
-        }
-
-        tokenAUBalance[_tokenId] -= _amount;
-        require(auToken.transfer(_recipient, _amount), "AU transfer failed");
-        emit TokensRemoved(_tokenId, _amount, _recipient);
     }
 
     function getAUBalance(uint256 _tokenId) public view returns (uint256) {
