@@ -12,24 +12,31 @@ contract NPCModule {
     NPCAU public npcAU;
     NPCControls public npcControls;
     address public treasury;
+    address public governance;
     address public mona;
     string public symbol;
     string public name;
+    NPCLibrary.ActivityBaseValues private _baseValues;
 
     error InvalidCreator();
     error InvalidAddress();
 
     constructor(
+        NPCLibrary.ActivityBaseValues memory _base,
         address _npcControls,
         address _treasury,
         address _accessControl,
-        address _npcAu
+        address _npcAu,
+        address _governance
     ) {
         npcControls = NPCControls(_npcControls);
         accessControl = AutographAccessControl(_accessControl);
         npcAU = NPCAU(_npcAu);
         name = "NPCModule";
         symbol = "NPCM";
+        _baseValues = _base;
+        governance = _governance;
+        treasury = _treasury;
     }
 
     modifier OnlyCreator(address _npc, uint256 _moduleId) {
@@ -38,6 +45,13 @@ contract NPCModule {
             npcControls.getNPCModuleArtist(_npc, msg.sender, _moduleId)
         ) {
             revert InvalidCreator();
+        }
+        _;
+    }
+
+    modifier OnlyGovernance() {
+        if (msg.sender != governance) {
+            revert InvalidAddress();
         }
         _;
     }
@@ -53,13 +67,33 @@ contract NPCModule {
         NPCLibrary.ActivityModule memory _module,
         address _npc
     ) public {
-        // compra + edita el npc y su metadata etc.
+        (uint256 _monaAmount, uint256 _auAmount) = _calculateAmount(
+            _module.outfitAmount,
+            _module.productPostAmount,
+            _module.interactionAmount,
+            _module.expiration
+        );
 
-        IERC20(mona).transferFrom(msg.sender, treasury, _amount);
+        IERC20(mona).transferFrom(msg.sender, treasury, _monaAmount);
 
-        npcAU.mintActivityModule();
+        npcAU.mint(_auAmount);
 
-        npcControls.addActivityModule(_module, _npc, msg.sender);
+        npcControls.addActivityModule(_module, _npc, msg.sender, _auAmount);
+    }
+
+    function _calculateAmount(
+        uint256 _outfitAmount,
+        uint256 _productPostAmount,
+        uint256 _interactionAmount,
+        uint256 _expiration
+    ) internal returns (uint256, uint256) {}
+
+    function updateSpectated(
+        address _npc,
+        uint256 _moduleId,
+        bool _spectate
+    ) public OnlyCreator(_npc, _moduleId) {
+        npcControls.spectateNFT(_npc, msg.sender, _moduleId, _spectate);
     }
 
     function updateActivityModule(
@@ -70,9 +104,16 @@ contract NPCModule {
         uint256 _interactionAmount,
         uint256 _expiration
     ) public OnlyCreator(_npc, _moduleId) {
-        IERC20(mona).transferFrom(msg.sender, treasury, _amount);
+        (uint256 _monaAmount, uint256 _auAmount) = _calculateAmount(
+            _outfitAmount,
+            _productPostAmount,
+            _interactionAmount,
+            _expiration
+        );
 
-        npcAU.mintAdditionalAU();
+        IERC20(mona).transferFrom(msg.sender, treasury, _monaAmount);
+
+        npcAU.mintAdditionalAU(_auAmount);
 
         npcControls.addToExistingActivity(
             _npc,
@@ -81,15 +122,26 @@ contract NPCModule {
             _outfitAmount,
             _productPostAmount,
             _interactionAmount,
-            _expiration
+            _expiration,
+            _auAmount
         );
+    }
+
+    function spectateNFT() public {
+        // spectate en un nft como patron
+    }
+
+    function updateBaseValues(
+        NPCLibrary.ActivityBaseValues memory _base
+    ) external OnlyGovernance {
+        _baseValues = _base;
     }
 
     function retireActivityModule(
         address _npc,
         uint256 _moduleId
     ) public OnlyCreator(_npc, _moduleId) {
-        npcControls.removeActivityModule(_npc, msg.sender);
+        npcControls.removeActivityModule(_npc, msg.sender, _moduleId);
     }
 
     function setTreasuryAddress(address _treasury) public OnlyAdmin {
@@ -99,4 +151,46 @@ contract NPCModule {
     function setMONAAddress(address _mona) public OnlyAdmin {
         mona = _mona;
     }
+
+    function getBaseExpiration() public view returns (uint256) {
+        return _baseValues.expiration;
+    }
+
+    function getBaseOutfitFrequencyPerDay() public view returns (uint256) {
+        return _baseValues.outfitFrequencyPerDay;
+    }
+
+    function getBasePerProduct() public view returns (uint256) {
+        return _baseValues.perProduct;
+    }
+
+    function getBasePerInteractionProfile() public view returns (uint256) {
+        return _baseValues.perInteractionProfile;
+    }
+
+    function getBaseProductFrequencyPerDay() public view returns (uint256) {
+        return _baseValues.productFrequencyPerDay;
+    }
+
+    function getBaseInteractionFrequencyPerDay() public view returns (uint256) {
+        return _baseValues.interactionFrequencyPerDay;
+    }
+
+    function getBasePersonality() public view returns (uint256) {
+        return _baseValues.personality;
+    }
+
+    function getBaseLanguage() public view returns (uint256) {
+        return _baseValues.language;
+    }
+
+    function getBaseModel() public view returns (uint256) {
+        return _baseValues.model;
+    }
 }
+
+// patron nfts (spectated) añade esto en el código
+// governance vote todas las cuatras semanas (una vez cada mes)
+// cómo poner el uri dentro del nft al mintearlo con un lienzo de javascript
+// el AU se envia al NFT y cada día se disminuye el au
+// cada npc tiene un límite del trabajo > la gobernanica lo puede cambiar

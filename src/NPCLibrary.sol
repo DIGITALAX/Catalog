@@ -5,6 +5,9 @@ contract NPCLibrary {
     struct ActivityModule {
         uint256[] products;
         uint256[] interactionProfiles;
+        uint256[] fundedAUAmounts;
+        uint256[] fundedAUTimestamps;
+        string uri;
         string languages;
         string topics;
         string outfit;
@@ -21,6 +24,22 @@ contract NPCLibrary {
         uint256 outfitCycleFrequency;
         uint256 productCycleFrequency;
         uint256 interactionCycleFrequency;
+        uint256 totalAUAmount;
+        uint256 liveAUAmount;
+        bool spectated;
+        bool live;
+    }
+
+    struct ActivityBaseValues {
+        uint256 outfitFrequencyPerDay;
+        uint256 perProduct;
+        uint256 perInteractionProfile;
+        uint256 productFrequencyPerDay;
+        uint256 interactionFrequencyPerDay;
+        uint256 personality;
+        uint256 language;
+        uint256 model;
+        uint256 expiration;
     }
 
     struct NPC {
