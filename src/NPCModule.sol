@@ -20,6 +20,7 @@ contract NPCModule {
 
     error InvalidCreator();
     error InvalidAddress();
+    error MaxModulesReached();
 
     constructor(
         NPCLibrary.ActivityBaseValues memory _base,
@@ -67,7 +68,17 @@ contract NPCModule {
         NPCLibrary.ActivityModule memory _module,
         address _npc
     ) public {
+        if (
+            npcControls.getNPCLiveCount(_npc) + 1 >
+            npcControls.getNPCMaxModules(_npc)
+        ) {
+            revert MaxModulesReached();
+        }
+
         (uint256 _monaAmount, uint256 _auAmount) = _calculateAmount(
+            _npc,
+            msg.sender,
+            0,
             _module.outfitAmount,
             _module.productPostAmount,
             _module.interactionAmount,
@@ -78,13 +89,6 @@ contract NPCModule {
 
         npcControls.addActivityModule(_module, _npc, msg.sender, _auAmount);
     }
-
-    function _calculateAmount(
-        uint256 _outfitAmount,
-        uint256 _productPostAmount,
-        uint256 _interactionAmount,
-        uint256 _expiration
-    ) internal returns (uint256, uint256) {}
 
     function updateSpectated(
         address _npc,
@@ -103,7 +107,17 @@ contract NPCModule {
         uint256 _expiration,
         bool _live
     ) public OnlyCreator(_npc, _moduleId) {
+        if (
+            npcControls.getNPCLiveCount(_npc) + 1 >
+            npcControls.getNPCMaxModules(_npc)
+        ) {
+            revert MaxModulesReached();
+        }
+
         (uint256 _monaAmount, uint256 _auAmount) = _calculateAmount(
+            _npc,
+            msg.sender,
+            _moduleId,
             _outfitAmount,
             _productPostAmount,
             _interactionAmount,
@@ -131,9 +145,19 @@ contract NPCModule {
         uint256 _moduleId,
         uint256 _chosenAUAmount
     ) public {
+        if (
+            npcControls.getNPCLiveCount(_npc) + 1 >
+            npcControls.getNPCMaxModules(_npc)
+        ) {
+            revert MaxModulesReached();
+        }
+
         uint256 _amount = _chosenAUAmount;
 
         (uint256 _monaAmount, uint256 _auAmount) = _calculateAmount(
+            _npc,
+            _creator,
+            _moduleId,
             npcControls.getNPCModuleOutfitAmount(_npc, _creator, _moduleId),
             npcControls.getNPCModuleProductPostAmount(
                 _npc,
@@ -169,6 +193,23 @@ contract NPCModule {
     ) public OnlyCreator(_npc, _moduleId) {
         npcControls.removeActivityModule(_npc, msg.sender, _moduleId);
     }
+
+    function pauseActivityModule(
+        address _npc,
+        uint256 _moduleId
+    ) public OnlyCreator(_npc, _moduleId) {
+        npcControls.pauseActivityModule(_npc, msg.sender, _moduleId);
+    }
+
+    function _calculateAmount(
+        address _npc,
+        address _creator,
+        uint256 _moduleId,
+        uint256 _outfitAmount,
+        uint256 _productPostAmount,
+        uint256 _interactionAmount,
+        uint256 _expiration
+    ) internal returns (uint256, uint256) {}
 
     function setTreasuryAddress(address _treasury) public OnlyAdmin {
         treasury = _treasury;
@@ -214,9 +255,3 @@ contract NPCModule {
         return _baseValues.model;
     }
 }
-
-// patron nfts (spectated) añade esto en el código
-// governance vota todas las cuatras semanas (una vez cada mes)
-// cómo poner el uri dentro del nft al mintearlo con un lienzo de javascript
-// el AU se envia al NFT y cada día se disminuye el au
-// cada npc tiene un límite del trabajo > la gobernanica lo puede cambiar

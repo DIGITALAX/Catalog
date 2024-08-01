@@ -44,8 +44,16 @@ contract NPCLibrary {
 
     struct NPC {
         mapping(address => mapping(uint256 => ActivityModule)) activityModules;
+        ActivityBaseValues npcBaseValues;
         string[] scenes;
         string spriteSheet;
+        uint256 maxModules;
+        uint16 id;
         bool isRegistered;
+    }
+
+    struct Vote {
+        ActivityBaseValues activityBase;
+        ActivityBaseValues[] npcValues;
     }
 }

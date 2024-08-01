@@ -12,17 +12,20 @@ contract NPCControls {
     string public name;
     address public npcModule;
     address public npcGovernance;
-    uint256 public npcCount;
-    uint256 public moduleCount;
+    uint256 private _moduleCount;
+    uint16 private _npcCount;
 
     mapping(address => NPCLibrary.NPC) private _npcs;
+    mapping(uint16 => address) private _npcAddresses;
+    mapping(address => uint256) private _npcLiveCount;
     mapping(address => mapping(address => uint256[])) private _npcModuleIds;
     mapping(address => address[]) private _npcCreators;
     mapping(address => mapping(address => mapping(uint256 => uint256)))
         private _tokenIdMap;
 
-    event NPCInitialized(address npcAddress);
+    event NPCInitialized(uint256 count, address npcAddress);
     event NPCEdited(address npcAddress);
+    event NPCDeleted(address npcAddress);
     event ActivityModuleAdded(
         address creator,
         address npcAddress,
@@ -36,6 +39,11 @@ contract NPCControls {
         uint256 nftId
     );
     event ActivityModuleRemoved(
+        address creator,
+        address npcAddress,
+        uint256 moduleId
+    );
+    event ActivityModulePaused(
         address creator,
         address npcAddress,
         uint256 moduleId
@@ -91,29 +99,47 @@ contract NPCControls {
     }
 
     function initializeNPC(
+        NPCLibrary.ActivityBaseValues memory _npcBaseValues,
         string[] memory _scenes,
         string memory _spriteSheet,
-        address _npcAddress
+        address _npcAddress,
+        uint256 _maxModules
     ) public onlyAdmin {
         if (_npcs[_npcAddress].isRegistered) {
             revert NPCAlreadyRegistered();
         }
+        _npcCount++;
         _npcs[_npcAddress].isRegistered = true;
         _npcs[_npcAddress].spriteSheet = _spriteSheet;
         _npcs[_npcAddress].scenes = _scenes;
-        npcCount++;
-        emit NPCInitialized(_npcAddress);
+        _npcs[_npcAddress].npcBaseValues = _npcBaseValues;
+        _npcs[_npcAddress].maxModules = _maxModules;
+        _npcs[_npcAddress].id = _npcCount;
+
+        _npcAddresses[_npcCount] = _npcAddress;
+
+        emit NPCInitialized(_npcCount, _npcAddress);
     }
 
     function editNPC(
+        NPCLibrary.ActivityBaseValues memory _npcBaseValues,
         string[] memory _scenes,
         string memory _spriteSheet,
-        address _npcAddress
+        address _npcAddress,
+        uint256 _maxModules
     ) public onlyAdmin {
-        _npcs[_npcAddress].isRegistered = true;
         _npcs[_npcAddress].spriteSheet = _spriteSheet;
         _npcs[_npcAddress].scenes = _scenes;
+        _npcs[_npcAddress].npcBaseValues = _npcBaseValues;
+        _npcs[_npcAddress].maxModules = _maxModules;
         emit NPCEdited(_npcAddress);
+    }
+
+    function deleteNPC(address _npcAddress) public onlyAdmin {
+        delete _npcAddresses[_npcs[_npcAddress].id];
+        delete _npcs[_npcAddress];
+
+        emit NPCDeleted(_npcAddress);
     }
 
     function addActivityModule(
@@ -122,11 +148,11 @@ contract NPCControls {
         address _creator,
         uint256 _auAmount
     ) external OnlyNPCModule {
-        moduleCount++;
+        _moduleCount++;
 
-        _npcs[_npc].activityModules[_creator][moduleCount] = _module;
+        _npcs[_npc].activityModules[_creator][_moduleCount] = _module;
         _npcs[_npc]
-            .activityModules[_creator][moduleCount]
+            .activityModules[_creator][_moduleCount]
             .fundedAUTimestamps
             .push(block.timestamp);
 
@@ -136,7 +162,7 @@ contract NPCControls {
         ) {
             _npcCreators[_npc].push(_creator);
         }
-        _npcModuleIds[_npc][_creator].push(moduleCount);
+        _npcModuleIds[_npc][_creator].push(_moduleCount);
 
         uint256 _tokenId = manualNFT.mint(
             _module.uri,
@@ -145,9 +171,9 @@ contract NPCControls {
             _module.live
         );
 
-        _tokenIdMap[_npc][_creator][moduleCount] = _tokenId;
+        _tokenIdMap[_npc][_creator][_moduleCount] = _tokenId;
 
-        emit ActivityModuleAdded(_creator, _npc, moduleCount, _tokenId);
+        emit ActivityModuleAdded(_creator, _npc, _moduleCount, _tokenId);
     }
 
     function chargeSpectatedModule(
@@ -167,6 +193,8 @@ contract NPCControls {
             ]
         ) {
             _npcs[_npc].activityModules[_creator][_moduleId].live = true;
+
+            _npcLiveCount[_npc] += 1;
         }
 
         manualNFT.chargeSpectatedAU(_creator, _auAmount);
@@ -216,6 +244,18 @@ contract NPCControls {
         emit ActivityModuleRemoved(_creator, _npc, _moduleId);
     }
 
+    function pauseActivityModule(
+        address _npc,
+        address _creator,
+        uint256 _moduleId
+    ) external OnlyNPCModule {
+        _npcs[_npc].activityModules[_creator][_moduleId].live = false;
+
+        _npcLiveCount[_npc] -= 1;
+
+        emit ActivityModulePaused(_creator, _npc, _moduleId);
+    }
+
     function addToExistingActivity(
         address _npc,
         address _creator,
@@ -250,6 +290,10 @@ contract NPCControls {
         _npcs[_npc]
         .activityModules[_creator][_moduleId].liveAUAmount = _auAmount;
         _npcs[_npc].activityModules[_creator][_moduleId].live = _live;
+
+        if (_live) {
+            _npcLiveCount[_npc] += 1;
+        }
 
         emit ActivityModuleUpdated(
             _creator,
@@ -359,14 +403,30 @@ contract NPCControls {
         return true;
     }
 
+    function getNPCCount() public view returns (uint16) {
+        return _npcCount;
+    }
+
+    function getModuleCount() public view returns (uint256) {
+        return _moduleCount;
+    }
+
     function getNPCScenes(address _npc) public view returns (string[] memory) {
         return _npcs[_npc].scenes;
+    }
+
+    function getNPCId(address _npc) public view returns (uint16) {
+        return _npcs[_npc].id;
     }
 
     function getNPCSpriteSheet(
         address _npc
     ) public view returns (string memory) {
         return _npcs[_npc].spriteSheet;
+    }
+
+    function getNPCMaxModules(address _npc) public view returns (uint256) {
+        return _npcs[_npc].maxModules;
     }
 
     function getNPCRegistered(address _npc) public view returns (bool) {
@@ -481,7 +541,7 @@ contract NPCControls {
         return _npcs[_npc].activityModules[_creator][_moduleId].spectated;
     }
 
-    function getNPCIsLive(
+    function getNPCModuleLive(
         address _npc,
         address _creator,
         uint256 _moduleId
@@ -528,5 +588,13 @@ contract NPCControls {
         uint256 _moduleId
     ) public view returns (uint256) {
         return _npcs[_npc].activityModules[_creator][_moduleId].totalAUAmount;
+    }
+
+    function getNPCAddressByCount(uint16 _count) public view returns (address) {
+        return _npcAddresses[_count];
+    }
+
+    function getNPCLiveCount(address _npc) public view returns (uint256) {
+        return _npcLiveCount[_npc];
     }
 }
