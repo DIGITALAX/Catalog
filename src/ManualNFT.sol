@@ -4,10 +4,11 @@ pragma solidity ^0.8.26;
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "./AutographAccessControl.sol";
 import "./NPCAU.sol";
+import "./NPCControls.sol";
 
 contract ManualNFT is ERC721Enumerable {
     AutographAccessControl public autographAccessControl;
-    address public npcControls;
+    NPCControls public npcControls;
     uint256 private _supply;
     NPCAU public auToken;
     address public npcRent;
@@ -16,6 +17,7 @@ contract ManualNFT is ERC721Enumerable {
     error InsufficientTokenBalance();
     error IncorrectBalance();
     error AddressNotNPC();
+    error ModulePaused();
 
     event TokenMinted(address creator, uint256 tokenId, uint256 auAmount);
     event RentPaid(address npc, uint256 tokenId, uint256 amount);
@@ -39,7 +41,7 @@ contract ManualNFT is ERC721Enumerable {
     }
 
     modifier OnlyControls() {
-        if (msg.sender != npcControls) {
+        if (msg.sender != address(npcControls)) {
             revert AddressNotVerified();
         }
         _;
@@ -54,7 +56,7 @@ contract ManualNFT is ERC721Enumerable {
         autographAccessControl = AutographAccessControl(
             _autographAccessControlAddress
         );
-        npcControls = _npcControls;
+        npcControls = NPCControls(_npcControls);
         auToken = NPCAU(_auTokenAddress);
         npcRent = _npcRent;
     }
@@ -90,10 +92,19 @@ contract ManualNFT is ERC721Enumerable {
         emit SpectatedAU(_creatorAddress, _supply, _auAmount);
     }
 
-    function npcTransferAU(uint256 _tokenId, uint256 _amount) public OnlyNPC {
+    function npcTransferAU(
+        address _creator,
+        uint256 _moduleId,
+        uint256 _tokenId,
+        uint256 _amount
+    ) public OnlyNPC {
         if (_amount > tokenAUBalance[_tokenId]) {
             revert IncorrectBalance();
         }
+        if (!npcControls.getNPCModuleLive(msg.sender, _creator, _moduleId)) {
+            revert ModulePaused();
+        }
+
         auToken.approve(msg.sender, _amount);
         auToken.transferFrom(address(this), npcRent, _amount);
         tokenAUBalance[_tokenId] -= _amount;
